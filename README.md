@@ -1,93 +1,80 @@
 <div align="center">
 
 # ⚡ vPanel Pro v3.1.1
-### Enterprise-Grade QEMU/KVM Virtualization & Server Management Platform
+### Enterprise-Grade QEMU/KVM Virtualization Platform with Full Arix Theme v2.1.3 Integration
 
 [![Node.js](https://img.shields.io/badge/Node.js-v18+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
 [![Express](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com)
 [![QEMU](https://img.shields.io/badge/QEMU-Virtualization-FF6600?style=for-the-badge&logo=qemu&logoColor=white)](https://www.qemu.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![License](https://img.shields.io/badge/License-MIT-6366F1?style=for-the-badge)](LICENSE)
+[![Arix Theme](https://img.shields.io/badge/Arix_Theme-v2.1.3-4A35CF?style=for-the-badge)](https://github.com/nobita329/vpanel-pro)
+[![GitHub Release](https://img.shields.io/badge/Release-v3.1.1-6366F1?style=for-the-badge&logo=github)](https://github.com/nobita329/vpanel-pro/releases)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
-*A complete, high-performance virtualization platform with strict 2-Panel Separation (👑 Admin Control Plane vs 👤 Tenant User Panel), dynamic module architecture, event bus plugins, AI diagnostics, and billing.*
+*A complete, high-performance virtualization platform featuring strict 2-Panel Separation (👑 Admin Control Plane vs 👤 Tenant User Panel), native Arix Theme v2.1.3 design system, multi-session SSH console, real-time telemetry area charts, cluster nodes, and automated CI/CD releases.*
 
 ---
 
 </div>
 
-## 🌟 What's New in vPanel Pro v3.1.1
+## 🌟 Key Highlights & Features
 
-- 🛠️ **Cross-Platform Installer Suite (`install.sh`)**: Automated installation with auto-resolution of `docker-proxy` for Ubuntu 24.04 (Noble), Debian 11–13, Docker CE, and devcontainers. Includes unattended CLI flags (`--admin-user`, `--admin-pass`, `--no-pm2`, `-y`).
-- 🖥️ **Default Terminal Size (169×33)**: SSH console defaults to 169 columns × 33 rows with quick-reset toolbar actions and geometry persistence.
-- ⚡ **Multi-Session SSH with 24/7 Persistence**: Run and toggle concurrent SSH terminal tabs without losing connection state when navigating between console tabs.
-- 🖱️ **noVNC Graphical Desktop Console**: Low-latency HTML5 remote framebuffer console for QEMU guests via WebSocket proxy (`/vncws/:id`) with Ctrl+Alt+Del dispatcher.
-- 💿 **OS Templates Studio**: 1-click cloud-init synchronization for 16 templates from [nobita329/Template.git](https://github.com/nobita329/Template.git) (Ubuntu, Debian, Fedora, CentOS, AlmaLinux, Rocky Linux).
-- 👑 **Clean 2-Panel Architecture**: Strict UI segregation between the Administrative Control Plane (`/admin/*`) and the Tenant Server Management Panel (`/dashboard`).
-- 🗄️ **MongoDB Management Studio**: Integrated Mongo-Express style manager for databases, collections, documents, indexes, and raw MongoDB query console.
-- 💾 **Storage Pools & ISO Library**: Manage Local Directory, LVM Volume Groups, and NFS storage pools, plus 1-click cloud image downloads.
-- 🌐 **Virtual Network & Firewall**: Host bridge interface discovery (`br0`, `virbr0`), IP CIDR subnet pools with lease tracking, NAT port forwarding, and virtual firewall rules (`ALLOW`/`DROP`).
-- ⚡ **API Keys & Webhooks**: Scoped REST API keys (`vp_live_...`) and outgoing event webhooks with HMAC-SHA256 signatures.
-- 🧩 **Event-Driven Plugins**: Native event dispatchers for **Discord Rich Embeds**, **Telegram Bot Alerts**, and custom HTTP POST webhooks.
-- 🎨 **Multi-Theme Engine**: 5 selectable presets: Slate Glass (default), Onyx Pure Black, Cyberpunk Neon, Arctic Nord, and Dracula Gothic.
-- 🔍 **Global Command Palette (`Ctrl + K`)**: Universal spotlight search for instant navigation, server/user lookup, and power actions.
-- 👤 **Tenant User Impersonation**: 1-click "Login as User" with a persistent floating return-to-admin bar and full audit logging.
-- 🤖 **AI Virtualization Diagnostics**: Intelligent offline boot log analyzer detecting Kernel Panics, KVM permissions, OOM kills, and disk corruption with copyable remediation commands.
-- 💳 **Billing & Resource Plans**: Compute packages (Starter, Pro, Ultra, Enterprise), invoice ledger, discount coupons, and payment gateway setup.
-- 🔄 **Pterodactyl-Style Updates Center**: Automated GitHub release checks, pre-update snapshots, live SSE progress streaming, and 1-click rollbacks.
-- 🌍 **Internationalization (i18n)**: Localization for English, Hindi (हिन्दी), Spanish (Español), German (Deutsch), and Arabic (العربية with RTL).
+### 🎨 1. Full Arix Theme v2.1.3 Design System
+- **Cosmic Glassmorphism Visuals**: Clean dark-mode UI with customizable blur (`--panel-blur`), opacity (`--panel-transparency`), and glowing accent borders.
+- **Ambient Themes & Backgrounds**: Integrated 4K Wallpaper browser (Anime, Space, Dark/AMOLED, Cyberpunk, Nature), custom video backgrounds (`.mp4`, `.webm`), and interactive audio cues (`online`, `offline`, `copy`).
+- **Unified Navigation**: Arix responsive sidebar with active glowing indicators, collapsible state, mobile drawer, and topbar user controls.
 
-### 🎨 1. Cosmic Glassmorphism UI & Studio
-- **Deep Slate Dark Design**: Modern translucent glass cards with glowing accent halo borders (`--panel-blur`, `--panel-transparency`).
-- **Integrated 4K Wallpaper Browser**: Browse, search, preview, favorite, and 1-click apply high-res 4K wallpapers directly from [4kwallpapers.com](https://4kwallpapers.com/) across 15+ categories (*Anime, Space, Dark/AMOLED, Nature, Supercars, Gaming, Abstract, etc.*).
-- **Interactive Sliders**: Real-time CSS Backdrop Blur (0px – 40px) and UI Transparency (0% – 100%) controls without page reloads.
-- **Custom Media Backgrounds**: Upload local images or looping video backgrounds (`.mp4`, `.webm`).
+### 🖥️ 2. Signature Arix Server Console Dashboard
+- **Top Header & Spec Summary**: Displays server name, OS distro, allocated vCPUs, RAM, and SSH port.
+- **Unified Power Controls**: Real-time 3-state power button group (`START` with blue active glow, `RESTART`, `STOP` with danger red glow and safety confirmations).
+- **2-Column Split Console Grid**:
+  - **Left (Terminal Window)**:
+    - Multi-session SSH Terminal with **24/7 background persistence**.
+    - 4-corner interactive mouse resize handles and quick presets (`169×33`, `Fit`, `Full`).
+    - **noVNC Graphical Desktop**: Low-latency HTML5 remote framebuffer console for QEMU guests with `Ctrl+Alt+Del`.
+    - **Live Boot Logs**: Real-time serial kernel streaming with AI Virtualization Diagnostics for boot failure remediation.
+    - **Interactive Command Prompt Bar**: Terminal input (`» Type a command...`) supporting Enter dispatch and Up/Down history navigation.
+  - **Right (7 Real-Time Stat Cards)**:
+    - **Address**: Hostname & port with 1-click clipboard copy.
+    - **Uptime**: Live guest uptime counter (`Xd Xh Xm Xs` / `Offline`).
+    - **CPU Load**: Real-time % utilization.
+    - **Memory**: Used MB vs. Total Allocated MB.
+    - **Disk**: Live consumed storage vs. Virtual disk capacity.
+    - **Network (Inbound)**: Live RX throughput (KiB/s).
+    - **Network (Outbound)**: Live TX throughput (KiB/s).
+- **Bottom 3 Telemetry Area Charts**:
+  - Real-time Bézier SVG area charts for **CPU Load**, **Memory**, and **Network** (inbound/outbound dual metrics) updated every 2.5 seconds.
 
-### ⚡ 2. Intuitive VM Creation Wizard
-- **⚡ Hardware Sizing Presets**: 1-click quick presets (*Starter, Standard, Compute/Dev, Powerhouse*).
-- **Dual-Control Resource Sliders**: Real-time synchronized range sliders and inputs for vCPUs and RAM.
-- **Filterable Distro Grid**: Cloud-image support for **Ubuntu** (22.04, 24.04), **Debian** (11, 12, 13), **Fedora** (40), **CentOS Stream**, **AlmaLinux**, and **Rocky Linux**.
-- **Live Deployment Blueprint**: Real-time sticky summary card updating specifications and cost calculations as you configure.
+### 👑 3. Admin Control Plane vs. Tenant User Panel
+- **Cluster Nodes Architecture**: Manage virtualization nodes, resource capacity, daemon ports, and guest allocations.
+- **Virtual Machines & Storage**: Deploy VMs with cloud-init images (Ubuntu, Debian, Fedora, CentOS, AlmaLinux, Rocky Linux). Manage Local Directory, LVM, and NFS storage pools.
+- **User Management & Delegation**: Subuser access control, TOTP Two-Factor Authentication (2FA), and 1-click **Admin User Impersonation** with a floating return bar.
+- **MongoDB Management Studio**: Integrated Mongo-Express style database manager for collections, documents, and query execution.
+- **Command Palette (`Ctrl + K`)**: Universal spotlight modal for instant server search, navigation, and power dispatch.
+- **Plugin System & Webhooks**: Native integrations for **Discord Rich Embeds**, **Telegram Bot Alerts**, and outgoing signed HTTP POST webhooks.
 
-### 💻 3. Next-Gen SSH Terminal & Serial Boot Logs
-- **Integrated Xterm.js Console**: Responsive web terminal connecting directly to guest instances over SSH.
-- **Kernel Boot & Startup Logs**: Dual-tab interface streaming live QEMU serial output, kernel messages, and cloud-init progress in real time.
-- **Toolbar Utilities**: Auto-refresh toggle (3s polling), auto-scroll, and 1-click clipboard copy.
-
-### 📁 4. High-Performance File Manager
-- **Guest Agent & SSH Dual-Engine**: Ultra-fast file operations with automatic graceful fallback.
-- **Accurate File Size Sizing**: Monospace human-readable formatting (`Bytes, KB, MB, GB`).
-- **Large Code Editor Modal**: Fullscreen multi-line editor (`width: min(1000px, 96vw)`) with monospace fonts and UTF-8 support.
-- **Multi-File Uploads**: Drag-and-drop or select multi-file uploads with payload support up to 200MB+.
-
-### 🛡️ 5. Multi-User & Enterprise Security
-- **Role-Based Access Control**: Root Administrators and Standard Users.
-- **Subuser Delegation**: Assign granular per-server permissions (*Console, File Manager, Backups, Power Controls*).
-- **Two-Factor Authentication (2FA)**: TOTP authenticator app support (Google Authenticator, Authy).
-- **Comprehensive Audit Logs**: Real-time event timeline logging all VM power actions, logins, and permission changes.
-
-### 💾 6. Snapshots & Cron Automation
-- **Instant Disk Backups**: 1-click snapshot creation, restoration, and raw disk download.
-- **Automated Scheduling**: Standard 5-field Cron automation for automatic backups, restarts, and routine maintenance.
+### 🔄 4. Automated CI/CD & GitHub Actions Release
+- **Automated Workflow (`.github/workflows/release.yml`)**: Automatically generates semver tags (`v3.1.1`) and publishes GitHub Releases with release notes upon pushes to `main`.
 
 ---
 
-## 🏗️ Architecture & Tech Stack
+## 🏗️ Architecture & Stack
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                       vPanel Pro UI                         │
-│   (Glassmorphism CSS • EJS Templates • Socket.IO • Xterm)   │
-└──────────────────────────────┬──────────────────────────────┘
-                               │ HTTP / WebSocket (Port 3001)
-┌──────────────────────────────▼──────────────────────────────┐
-│                    Node.js + Express Core                   │
-│  (Auth Middleware • MongoDB Database • VM Orchestrator)     │
-└──────────────┬──────────────────────────────┬───────────────┘
-               │                              │
-┌──────────────▼──────────────┐┌──────────────▼───────────────┐
-│     QEMU Hypervisor Engine  ││     vPanel Guest Agent       │
-│  (-drive, -smp, -m, -netdev)││  (Python HTTP Daemon / SSH)  │
-└─────────────────────────────┘└──────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│                        vPanel Pro Frontend                             │
+│       Arix Theme v2.1.3 • EJS • Xterm.js • Socket.IO • Lucide Icons    │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │ HTTP / WebSocket (Port 3001)
+┌───────────────────────────────────▼────────────────────────────────────┐
+│                         Node.js & Express Core                         │
+│     Cluster Node Orchestrator • MongoDB • Auth / RBAC • Event Plugins  │
+└─────────────────┬──────────────────────────────────────┬───────────────┘
+                  │                                      │
+┌─────────────────▼──────────────┐     ┌─────────────────▼───────────────┐
+│     QEMU Hypervisor Engine     │     │      vPanel Guest Agent         │
+│   (KVM / TCG • VirtIO • VNC)   │     │   (Serial Daemon / SSH / Files) │
+└────────────────────────────────┘     └─────────────────────────────────┘
 ```
 
 ---
@@ -95,22 +82,23 @@
 ## 📋 System Requirements
 
 - **Operating System**: Linux (Ubuntu 20.04+, Debian 11+, RHEL/CentOS 9+, Fedora, Arch Linux)
-- **Node.js**: v18.0.0 or higher (Node 20+ recommended)
-- **Hypervisor**: QEMU (`qemu-system-x86_64`, `qemu-img`)
+- **Node.js**: v18.0.0+ (v20+ recommended)
+- **Database**: MongoDB 5.0+ (or Docker container `mongo:latest`)
+- **Virtualization**: QEMU (`qemu-system-x86_64`, `qemu-img`)
 - **Utilities**: `cloud-image-utils` (`cloud-localds`), `wget`, `openssl`, `python3`
 
 ---
 
-## 🚀 Quick Start & Installation
+## 🚀 Installation & Quick Start
 
-### Option 1: Automated Setup (Recommended)
+### Option 1: Automated Installer (Recommended)
 
 ```bash
 # Clone the repository
 git clone https://github.com/nobita329/vpanel-pro.git
 cd vpanel-pro
 
-# Interactive installation menu
+# Interactive installation wizard
 sudo bash install.sh
 
 # Or 1-line unattended install
@@ -130,12 +118,13 @@ sudo bash install.sh --install -y --admin-user admin --admin-email admin@vpanel.
 | `--admin-pass <pass>` | Administrator password | Generated random |
 | `--no-pm2` | Skip PM2 daemon setup | `0` |
 | `-y`, `--non-interactive` | Run without interactive prompts | `0` |
-| `-h`, `--help` | Display usage instructions | - |
 
-### Option 2: Manual Installation
+---
+
+### Option 2: Manual Setup
 
 ```bash
-# 1. Clone repository and install dependencies
+# 1. Clone repository & install dependencies
 git clone https://github.com/nobita329/vpanel-pro.git
 cd vpanel-pro
 npm install
@@ -150,41 +139,68 @@ npm run createuser
 npm start
 ```
 
-### Production Deployment with PM2
+---
+
+### Option 3: Production Deployment with PM2
 
 ```bash
-# Start cluster process
+# Start cluster with automatic restarts and logging
 pm2 start ecosystem.config.js
 
-# Save process list for system reboot
+# Persist across system reboots
 pm2 save
 pm2 startup
 ```
 
 ---
 
-## 🌐 Default Ports & Access
+### Option 4: Docker & No-KVM Mode
 
-| Service | Default URL | Description |
-| :--- | :--- | :--- |
-| **Web Panel** | `http://<host_ip>:3001` | Main user dashboard and management interface |
-| **REST API** | `http://<host_ip>:3002/api` | RESTful API & Socket.IO telemetry engine |
-| **VM Port Range** | `25501 - 25600` | Dynamic host-forwarded SSH ports |
-| **noVNC Console Range** | `25901 - 26000` | Dynamic host-forwarded VNC desktop ports |
-| **Agent Port Range**| `26101 - 26200` | Internal guest-daemon communication |
+For environments without `/dev/kvm` hardware acceleration (cloud VPS, GitHub Codespaces, standard Docker):
+
+```bash
+# Start container using Docker Compose
+docker compose up -d --build
+```
+
+Or run standalone:
+```bash
+docker run -d \
+  --name vpanel-pro \
+  --restart unless-stopped \
+  -e NO_KVM=1 \
+  -p 3001:3001 \
+  -p 3002:3002 \
+  -p 25501-25600:25501-25600 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/vms:/app/vms \
+  nobita329/vpanel-pro
+```
 
 ---
 
-## ⚙️ Configuration Environment (`.env`)
+## 🌐 Default Ports & Access
+
+| Service | Default URL / Port | Description |
+| :--- | :--- | :--- |
+| **Web Panel** | `http://<host_ip>:3001` | Arix-themed management interface & client dashboard |
+| **REST API** | `http://<host_ip>:3002/api` | RESTful API & Socket.IO telemetry engine |
+| **VM Port Range** | `25501 - 25600` | Dynamic host-forwarded guest SSH ports |
+| **noVNC Console Range** | `25901 - 26000` | Dynamic host-forwarded guest VNC ports |
+| **Agent Port Range** | `26101 - 26200` | Guest daemon communication |
+
+---
+
+## ⚙️ Configuration (`.env`)
 
 ```ini
-# Panel Ports & Server
+# Panel Ports & URLs
 PANEL_PORT=3001
 API_PORT=3002
 PANEL_URL=http://localhost:3001
 NODE_ENV=production
 
-# Security & Secrets
+# Security
 JWT_SECRET=your_super_secret_jwt_key_here
 JWT_EXPIRES=7d
 ALLOW_REGISTER=1
@@ -192,10 +208,10 @@ ALLOW_REGISTER=1
 # MongoDB Connection URI
 MONGO_URI=mongodb://admin:password@127.0.0.1:27017/vpanel?authSource=admin
 
-# Storage Locations
+# Storage & VM Directories
 VM_DIR=./vms
 
-# Automatic Port Forwarding Ranges
+# Port Allocation Ranges
 AUTO_PORT_MIN=25501
 AUTO_PORT_MAX=25600
 AUTO_VNC_PORT_MIN=25901
@@ -206,19 +222,19 @@ AUTO_AGENT_PORT_MAX=26200
 
 ---
 
-## 🔌 API Reference Overview
+## 🔌 Core API Endpoints
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `POST` | `/api/login` | Authenticate and obtain JWT bearer token |
+| `POST` | `/api/login` | Authenticate and obtain JWT token |
 | `GET` | `/api/vms` | List all accessible virtual machines |
-| `POST` | `/api/vms/:id/action` | Trigger power action (`start`, `stop`, `restart`, `kill`) |
-| `GET` | `/api/vms/:id/bootlog` | Stream kernel boot & serial output logs |
-| `GET` | `/api/vms/:id/files?path=/` | List files and directories in guest filesystem |
-| `GET` | `/api/vms/:id/files/download` | Download file from guest |
-| `POST` | `/api/vms/:id/files/upload` | Upload binary/text file to guest |
-| `GET` | `/api/wallpapers?category=all` | Browse 4K wallpaper library with search & pagination |
-| `POST` | `/api/wallpapers/apply` | 1-click apply wallpaper and glassmorphism styles |
+| `POST` | `/api/vms/:id/action` | Trigger power actions (`start`, `stop`, `restart`, `kill`) |
+| `GET` | `/api/vms/:id/status` | Fetch real-time CPU, RAM, disk, and network telemetry |
+| `GET` | `/api/vms/:id/bootlog` | Retrieve kernel serial boot stream |
+| `GET` | `/api/vms/:id/files?path=/` | Browse guest filesystem via agent/SSH |
+| `POST` | `/api/vms/:id/files/upload` | Upload files to guest filesystem |
+| `GET` | `/api/wallpapers?category=all` | Browse 4K wallpaper library |
+| `POST` | `/api/wallpapers/apply` | Apply wallpaper & glassmorphism theme presets |
 
 ---
 
@@ -227,5 +243,5 @@ AUTO_AGENT_PORT_MAX=26200
 Distributed under the MIT License. See `LICENSE` for more information.
 
 <div align="center">
-  <sub>Built with ❤️ by <a href="https://github.com/nobita329">Nobita</a> for developers and sysadmins worldwide.</sub>
+  <sub>Built with ❤️ by <a href="https://github.com/nobita329">Nobita</a> & contributors.</sub>
 </div>
