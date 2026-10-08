@@ -26,7 +26,16 @@ async function getUserFromReq(req) {
       const payload = authService.verifyToken(token);
       if (!payload || !payload.sub) continue;
       const found = await authService.findById(Number(payload.sub));
-      if (found && !found.suspended) {
+      if (found) {
+        if (found.is_banned) continue;
+        if (found.suspended) {
+          if (found.suspended_until && new Date(found.suspended_until) <= new Date()) {
+            await authService.updateUser(found.id, { suspended: false, suspended_until: null, suspension_reason: null }).catch(() => {});
+            found.suspended = 0;
+          } else {
+            continue;
+          }
+        }
         user = found;
         break;
       }

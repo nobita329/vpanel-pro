@@ -198,6 +198,17 @@
             <% } %>
           </select>
         </div>
+
+        <div class="form-group mt-3">
+          <label>Server Description</label>
+          <textarea id="fDescription" class="form-control" rows="2" placeholder="Brief description of this server..."></textarea>
+        </div>
+
+        <div class="form-group mt-3">
+          <label>Server Expiry Date</label>
+          <input type="datetime-local" id="fExpDate" class="form-control"/>
+          <div class="form-hint">Leave blank for no expiry date</div>
+        </div>
       </div>
 
       <!-- 4. Networking & Ports -->
@@ -621,6 +632,11 @@ async function createVm() {
   fd.append('start_on_boot', document.getElementById('fStartBoot').checked ? '1' : '0');
   fd.append('gui_mode', document.getElementById('fGui').checked ? '1' : '0');
   fd.append('owner_id', document.getElementById('fOwner').value);
+
+  const descVal = document.getElementById('fDescription')?.value?.trim();
+  if (descVal) fd.append('description', descVal);
+  const expVal = document.getElementById('fExpDate')?.value;
+  if (expVal) fd.append('exp_date', expVal);
 
   if ((document.querySelector('input[name="imgSrc"]:checked') || {}).value === 'upload') {
     const f = document.getElementById('fImg').files[0];

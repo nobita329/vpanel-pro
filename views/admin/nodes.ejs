@@ -1,582 +1,329 @@
-<%- include('../partials/head', { title: 'Nodes & Performance Statistics' }) %>
+<%- include('../partials/head', { title: 'Node Management' }) %>
 <%- include('../partials/ambient') %>
 <%- include('../partials/topbar') %>
 <%- include('../partials/sidebar') %>
 
-<style>
-.node-hero-card {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(6, 9, 19, 0.95) 100%);
-  border: 1px solid var(--accent);
-  box-shadow: 0 12px 36px rgba(0,0,0,0.5), 0 0 20px rgba(99,102,241,0.15);
-  border-radius: 18px;
-  padding: 24px;
-  position: relative;
-  overflow: hidden;
-}
-.node-hero-card::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-  pointer-events: none;
-}
-.metric-progress-track {
-  height: 8px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 99px;
-  overflow: hidden;
-  margin-top: 10px;
-  position: relative;
-}
-.metric-progress-fill {
-  height: 100%;
-  width: 0%;
-  border-radius: 99px;
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s ease;
-}
-.spec-item {
-  background: rgba(0,0,0,0.25);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 13px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.spec-label {
-  color: var(--text-dim);
-  font-size: 13px;
-  font-weight: 500;
-}
-.spec-val {
-  font-weight: 700;
-  font-size: 13.5px;
-  color: #fff;
-}
-.core-box {
-  background: rgba(0,0,0,0.25);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.chart-canvas-wrap {
-  position: relative;
-  width: 100%;
-  height: 190px;
-  background: rgba(0,0,0,0.3);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-  padding: 10px;
-}
-.chart-canvas-wrap canvas {
-  width: 100% !important;
-  height: 100% !important;
-  display: block;
-}
-</style>
+<%
+  const nodeList = (typeof nodes !== 'undefined' && nodes) || [];
+  const stats = (typeof nodeStats !== 'undefined' && nodeStats) || {};
+  const filterVal = (typeof filterQuery !== 'undefined' && filterQuery) || '';
+%>
 
 <div class="main">
-  <!-- Page Header -->
-  <div class="flex-between mb-4">
+  <!-- Breadcrumbs -->
+  <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+    <a href="/admin" style="color:var(--text-muted);text-decoration:none">Admin</a>
+    <span>/</span>
+    <span style="color:var(--accent);font-weight:600">Nodes</span>
+  </div>
+
+  <!-- Header -->
+  <div class="flex-between mb-4" style="flex-wrap:wrap;gap:12px">
     <div>
-      <div class="muted text-sm" style="margin-bottom:2px">Cluster Infrastructure / Host Telemetry</div>
-      <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.4px;margin:0">Nodes &amp; Performance Statistics</h2>
+      <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.4px;margin:0">Nodes</h2>
+      <div class="muted" style="margin-top:2px">All hypervisor nodes and compute hosts available on the system.</div>
     </div>
-    <div class="flex" style="gap:10px;align-items:center">
-      <span class="pill pill-green" id="nodeMasterPill">
-        <span class="pulse-dot"></span> Node 1 (Primary) Online
-      </span>
-      <button type="button" class="btn btn-sm" onclick="fetchNodeLiveStatus(true)" title="Force Refresh Node Telemetry">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-        Refresh
-      </button>
-    </div>
-  </div>
-
-  <!-- Primary Node Overview Hero Card -->
-  <div class="node-hero-card mb-4">
-    <div class="flex-between" style="flex-wrap:wrap;gap:16px;position:relative;z-index:1">
-      <div class="flex" style="gap:16px;align-items:center">
-        <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg, var(--accent), var(--accent-2));display:grid;place-items:center;color:#fff;box-shadow:0 0 24px var(--accent-glow)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
-        </div>
-        <div>
-          <div class="flex" style="gap:8px;align-items:center">
-            <h3 style="font-size:20px;font-weight:800;color:#fff;margin:0" id="nodeNameText"><%= nodeStats.name %></h3>
-            <span class="pill pill-blue font-bold">Primary Hypervisor</span>
-          </div>
-          <div class="muted text-sm mt-1" style="font-size:12.5px">
-            Hostname: <span class="mono font-bold text-white" id="nodeHostText"><%= nodeStats.hostname %></span> · IP: <span class="mono text-white"><%= nodeStats.ip %></span> · Location: <span class="text-white"><%= nodeStats.location %></span>
-          </div>
-        </div>
-      </div>
-      <div class="flex" style="gap:20px;align-items:center">
-        <div style="text-align:right">
-          <div class="muted text-sm" style="font-size:11.5px">Host System Uptime</div>
-          <div class="mono font-bold" style="font-size:16px;color:#fff" id="nodeUptimeText"><%= Math.floor(nodeStats.uptime_seconds / 3600) %>h <%= Math.floor((nodeStats.uptime_seconds % 3600) / 60) %>m <%= nodeStats.uptime_seconds % 60 %>s</div>
-        </div>
-        <div style="text-align:right">
-          <div class="muted text-sm" style="font-size:11.5px">VM Cluster Density</div>
-          <div class="font-bold" style="font-size:16px;color:var(--accent-2)" id="nodeVmDensityText"><%= nodeStats.vms.running %> / <%= nodeStats.vms.total %> Active</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Real-Time Metrics 4-Card Grid -->
-  <div class="grid grid-4 mb-4">
-    <!-- CPU Metric Card -->
-    <div class="stat" style="display:block;padding:20px">
-      <div class="flex-between">
-        <div class="stat-label" style="font-size:13px;font-weight:600">CPU Usage</div>
-        <span class="pill pill-blue mono font-bold" id="cpuBadge"><%= nodeStats.cpu.percent %>%</span>
-      </div>
-      <div class="stat-value mt-2" style="font-size:26px" id="cpuValueText"><%= nodeStats.cpu.percent %><span style="font-size:16px;color:var(--text-dim)">%</span></div>
-      <div class="metric-progress-track">
-        <div class="metric-progress-fill" id="cpuBarFill" style="background:linear-gradient(90deg, #38bdf8, #6366f1)" data-init-width="<%= Math.min(100, Math.max(2, nodeStats.cpu.percent)) %>"></div>
-      </div>
-      <div class="muted text-sm mt-2 mono" style="font-size:11px" id="cpuCoresText">
-        <%= nodeStats.cpu.cores_count %> Cores · Load: <%= nodeStats.cpu.load_avg.join(', ') %>
-      </div>
-    </div>
-
-    <!-- Memory (RAM) Metric Card -->
-    <div class="stat" style="display:block;padding:20px">
-      <div class="flex-between">
-        <div class="stat-label" style="font-size:13px;font-weight:600">Memory (RAM)</div>
-        <span class="pill pill-green mono font-bold" id="memBadge"><%= nodeStats.memory.percent %>%</span>
-      </div>
-      <div class="stat-value mt-2" style="font-size:26px" id="memValueText"><%= (nodeStats.memory.used_mb / 1024).toFixed(1) %><span style="font-size:16px;color:var(--text-dim)"> / <%= (nodeStats.memory.total_mb / 1024).toFixed(1) %> GB</span></div>
-      <div class="metric-progress-track">
-        <div class="metric-progress-fill" id="memBarFill" style="background:linear-gradient(90deg, #10b981, #34d399)" data-init-width="<%= Math.min(100, Math.max(2, nodeStats.memory.percent)) %>"></div>
-      </div>
-      <div class="muted text-sm mt-2 mono" style="font-size:11px" id="memFreeText">
-        <%= (nodeStats.memory.free_mb / 1024).toFixed(1) %> GB Free · <%= nodeStats.vms.allocated_memory_mb %> MB in VMs
-      </div>
-    </div>
-
-    <!-- Disk Storage Metric Card -->
-    <div class="stat" style="display:block;padding:20px">
-      <div class="flex-between">
-        <div class="stat-label" style="font-size:13px;font-weight:600">Host Storage</div>
-        <span class="pill pill-yellow mono font-bold" id="diskBadge"><%= nodeStats.disk.percent %>%</span>
-      </div>
-      <div class="stat-value mt-2" style="font-size:26px" id="diskValueText"><%= nodeStats.disk.used_gb %><span style="font-size:16px;color:var(--text-dim)"> / <%= nodeStats.disk.total_gb %> GB</span></div>
-      <div class="metric-progress-track">
-        <div class="metric-progress-fill" id="diskBarFill" style="background:linear-gradient(90deg, #f59e0b, #fbbf24)" data-init-width="<%= Math.min(100, Math.max(2, nodeStats.disk.percent)) %>"></div>
-      </div>
-      <div class="muted text-sm mt-2 mono" style="font-size:11px" id="diskFreeText">
-        <%= nodeStats.disk.free_gb %> GB Available on Root
-      </div>
-    </div>
-
-    <!-- Network Throughput Metric Card -->
-    <div class="stat" style="display:block;padding:20px">
-      <div class="flex-between">
-        <div class="stat-label" style="font-size:13px;font-weight:600">Network I/O</div>
-        <span class="pill pill-blue font-bold" id="netSpeedBadge">Live RX/TX</span>
-      </div>
-      <div class="stat-value mt-2" style="font-size:24px" id="netRxTxText">
-        <span style="color:#38bdf8">↓ <%= nodeStats.network.rx_kbps %></span> <span style="font-size:14px;color:var(--text-dim)">KB/s</span>
-      </div>
-      <div class="metric-progress-track">
-        <div class="metric-progress-fill" style="width:100%;background:linear-gradient(90deg, #38bdf8, #a855f7)"></div>
-      </div>
-      <div class="muted text-sm mt-2 mono" style="font-size:11px" id="netTxDetailText">
-        ↑ Outbound: <%= nodeStats.network.tx_kbps %> KB/s · Total: <%= (nodeStats.network.rx_bytes / (1024**3)).toFixed(2) %> GB In
-      </div>
-    </div>
-  </div>
-
-  <!-- Real-Time Performance Charts Section (2 Columns) -->
-  <div class="grid grid-2 mb-4" style="gap:20px">
-    <!-- Chart 1: CPU & RAM Timeline -->
-    <div class="card" style="padding:20px">
-      <div class="flex-between mb-3">
-        <div class="card-title" style="margin:0;font-size:15px;display:flex;align-items:center;gap:8px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          Live CPU &amp; Memory Utilization History
-        </div>
-        <div class="flex" style="gap:10px;font-size:11.5px">
-          <span style="color:#38bdf8;font-weight:700">● CPU %</span>
-          <span style="color:#34d399;font-weight:700">● Memory %</span>
-        </div>
-      </div>
-      <div class="chart-canvas-wrap">
-        <canvas id="cpuMemChart"></canvas>
-      </div>
-    </div>
-
-    <!-- Chart 2: Network Traffic Speed -->
-    <div class="card" style="padding:20px">
-      <div class="flex-between mb-3">
-        <div class="card-title" style="margin:0;font-size:15px;display:flex;align-items:center;gap:8px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg>
-          Live Network Throughput (KB/s)
-        </div>
-        <div class="flex" style="gap:10px;font-size:11.5px">
-          <span style="color:#38bdf8;font-weight:700">● Inbound (RX)</span>
-          <span style="color:#f59e0b;font-weight:700">● Outbound (TX)</span>
-        </div>
-      </div>
-      <div class="chart-canvas-wrap">
-        <canvas id="netChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Per-Core Processor Utilization Matrix -->
-  <div class="card mb-4" style="padding:22px">
-    <div class="flex-between mb-3">
-      <div class="card-title" style="margin:0;display:flex;align-items:center;gap:8px">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
-        Multi-Core Processor Load Matrix
-      </div>
-      <span class="muted text-sm mono font-bold" id="cpuModelTopText"><%= nodeStats.cpu.model %></span>
-    </div>
-    
-    <div class="grid grid-4" style="gap:12px" id="coreMatrixGrid">
-      <% nodeStats.cpu.per_core.forEach((corePct, idx) => { %>
-        <div class="core-box">
-          <div class="flex-between">
-            <span style="font-weight:700;font-size:12.5px;color:#fff">Core <%= idx %></span>
-            <span class="pill pill-blue mono font-bold" style="font-size:10.5px;padding:1px 6px" id="coreBadge<%= idx %>"><%= corePct %>%</span>
-          </div>
-          <div class="metric-progress-track" style="margin-top:2px;height:6px">
-            <div class="metric-progress-fill" id="coreBar<%= idx %>" style="background:linear-gradient(90deg, #38bdf8, #6366f1)" data-init-width="<%= Math.min(100, Math.max(2, corePct)) %>"></div>
-          </div>
-        </div>
-      <% }) %>
-    </div>
-  </div>
-
-  <!-- Hardware Specs & Environment Details (2 Columns) -->
-  <div class="grid grid-2 mb-4" style="gap:20px">
-    <!-- Node System Details -->
-    <div class="card" style="padding:22px">
-      <div class="card-title mb-3">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 10 10 0 0 0 9.54-13.88A10 10 0 0 0 12 2z"/></svg>
-        Node System Environment
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <div class="spec-item">
-          <span class="spec-label">Processor Model</span>
-          <span class="spec-val"><%= nodeStats.cpu.model %> (<%= nodeStats.cpu.cores_count %> Cores)</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-label">OS Platform &amp; Kernel</span>
-          <span class="spec-val"><%= nodeStats.os.type %> <%= nodeStats.os.release %> (<%= nodeStats.os.arch %>)</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-label">Swap Memory Storage</span>
-          <span class="spec-val mono"><%= nodeStats.swap.used_mb %> MB / <%= nodeStats.swap.total_mb %> MB (<%= nodeStats.swap.percent %>%)</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-label">Process Daemon Runtime</span>
-          <span class="spec-val mono">PM2 Cluster (PID <%= process.pid %>)</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Virtualization Stack Details -->
-    <div class="card" style="padding:22px">
-      <div class="card-title mb-3">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        Virtualization Engine &amp; Density
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <div class="spec-item">
-          <span class="spec-label">QEMU Hypervisor Engine</span>
-          <span class="pill pill-green font-bold">Installed &amp; Online</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-label">Cloud-Init Engine (cloud-localds)</span>
-          <span class="pill pill-green font-bold">Ready</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-label">KVM Hardware Acceleration</span>
-          <span class="pill <%= nodeStats.hypervisor.kvm_support ? 'pill-green' : 'pill-yellow' %> font-bold"><%= nodeStats.hypervisor.kvm_support ? 'Enabled (/dev/kvm)' : 'Emulation' %></span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-label">Total Assigned vCPUs / RAM</span>
-          <span class="spec-val mono"><%= nodeStats.vms.allocated_cpus %> vCPUs / <%= nodeStats.vms.allocated_memory_mb %> MB</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Hosted Virtual Machines Table -->
-  <div class="card">
-    <div class="flex-between mb-3">
-      <div class="card-title" style="margin:0">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
-        Virtual Machines Hosted on this Node (<span id="vmCountText"><%= vms.length %></span>)
-      </div>
-      <a href="/admin/servers/create" class="btn btn-primary btn-sm">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 5v14M5 12h14"/></svg>
-        Deploy VM to Node
+    <div class="flex" style="gap:10px">
+      <a class="btn btn-primary" href="/admin/nodes/create" style="background:#10b981;border-color:#10b981;display:flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 5v14M5 12h14"/></svg>
+        Create New Node
       </a>
     </div>
+  </div>
 
-    <% if (vms.length === 0) { %>
-      <div class="empty">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
-        <p style="font-size:15px;font-weight:600;color:var(--text)">No VMs deployed on this node yet</p>
-        <div class="mt-2"><a href="/admin/servers/create" class="btn btn-primary btn-sm">Create First VM</a></div>
+  <!-- Mass Actions Section (matching Pterodactyl index.blade.php) -->
+  <% if (user && (user.root_admin || user.role === 'admin')) { %>
+  <div class="card mb-4" id="ma-node-section" style="border:1px solid rgba(59,130,246,0.35);background:rgba(59,130,246,0.03);padding:18px">
+    <div class="flex-between mb-3" style="border-bottom:1px solid rgba(255,255,255,0.07);padding-bottom:10px">
+      <div style="font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;color:#60a5fa">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Mass Actions
+      </div>
+      <span id="ma-selected-count" class="pill pill-blue font-bold" style="font-size:11px;padding:3px 10px">0 nodes selected</span>
+    </div>
+
+    <div class="grid grid-3" style="gap:18px;align-items:start">
+      <!-- 1. Set App Name -->
+      <div>
+        <div class="muted text-sm font-bold mb-1" style="color:var(--text);display:flex;align-items:center;gap:5px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          Set App Name
+        </div>
+        <p class="muted text-sm" style="font-size:11.5px;margin-bottom:8px">Applies to selected nodes' Wings configuration.</p>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="ma-app-name" placeholder="e.g. vPanel Pro" style="height:32px;padding:4px 8px;font-size:12px;border-radius:6px;width:100%"/>
+          <button id="ma-btn-appname" type="button" class="btn btn-sm btn-primary" onclick="massApplyAppName()" disabled style="font-size:11px;padding:4px 10px;white-space:nowrap">Apply</button>
+        </div>
+        <div id="ma-appname-result" style="margin-top:6px;font-size:11.5px"></div>
+      </div>
+
+      <!-- 2. Wings Service Controls -->
+      <div>
+        <div class="muted text-sm font-bold mb-1" style="color:var(--text);display:flex;align-items:center;gap:5px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Wings Service
+        </div>
+        <p class="muted text-sm" style="font-size:11.5px;margin-bottom:8px">Control Wings daemon across selected nodes.</p>
+        <div class="flex" style="gap:6px">
+          <button id="ma-btn-start" type="button" class="btn btn-sm btn-green" onclick="massWingsAction('start')" disabled style="font-size:11px;padding:3px 8px">Start</button>
+          <button id="ma-btn-restart" type="button" class="btn btn-sm" onclick="massWingsAction('restart')" disabled style="font-size:11px;padding:3px 8px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#fbbf24">Restart</button>
+          <button id="ma-btn-stop" type="button" class="btn btn-sm btn-danger" onclick="massWingsAction('stop')" disabled style="font-size:11px;padding:3px 8px">Stop</button>
+        </div>
+        <div id="ma-wings-result" style="margin-top:6px;font-size:11.5px"></div>
+      </div>
+
+      <!-- 3. Selection Shortcuts -->
+      <div>
+        <div class="muted text-sm font-bold mb-1" style="color:var(--text);display:flex;align-items:center;gap:5px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Selection
+        </div>
+        <p class="muted text-sm" style="font-size:11.5px;margin-bottom:8px">Use table checkboxes or shortcuts below.</p>
+        <div class="flex" style="gap:6px">
+          <button type="button" class="btn btn-sm" onclick="massSelectAll()" style="font-size:11px;padding:3px 8px">Select All</button>
+          <button type="button" class="btn btn-sm" onclick="massDeselectAll()" style="font-size:11px;padding:3px 8px">Deselect All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Node List Main Table Card (matching Pterodactyl index.blade.php) -->
+  <div class="card mb-4">
+    <div class="flex-between mb-3" style="align-items:center;gap:16px;flex-wrap:wrap">
+      <div class="card-title" style="margin:0;display:flex;align-items:center;gap:8px;white-space:nowrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
+        Node List (<span id="nodeCount"><%= nodeList.length %></span>)
+      </div>
+
+      <!-- Filters & Search -->
+      <div class="flex" style="gap:8px;align-items:center;flex-wrap:nowrap">
+        <div style="position:relative;width:220px">
+          <input type="search" id="nodeFilter" value="<%= filterVal %>" placeholder="Search nodes…" style="width:100%;height:34px;padding:6px 10px 6px 30px;font-size:12px;border-radius:6px;box-sizing:border-box"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <% if (nodeList.length === 0) { %>
+      <div class="empty" style="padding:36px;text-align:center">
+        <p style="font-size:15px;font-weight:600;color:var(--text)">No nodes configured</p>
+        <p class="muted">No compute nodes have been added yet.</p>
+        <div class="mt-3"><a href="/admin/nodes/create" class="btn btn-primary">Create First Node</a></div>
       </div>
     <% } else { %>
       <div class="table-wrap">
-        <table>
+        <table id="nodeTable">
           <thead>
             <tr>
-              <th>Virtual Machine</th>
-              <th>Owner</th>
-              <th>OS / Distro</th>
-              <th>Hardware Allocation</th>
-              <th>SSH Port</th>
-              <th>Live Status</th>
-              <th class="right">Actions</th>
+              <th style="width:36px;text-align:center" class="muted">☰</th>
+              <% if (user && (user.root_admin || user.role === 'admin')) { %>
+                <th style="width:36px;text-align:center">
+                  <input type="checkbox" id="ma-check-all" title="Select all on this page" onclick="massToggleAll(this.checked)" style="width:16px;height:16px;cursor:pointer"/>
+                </th>
+              <% } %>
+              <th style="width:36px;text-align:center">Ping</th>
+              <th>Name</th>
+              <th>Location</th>
+              <th>Memory</th>
+              <th>Disk</th>
+              <th class="text-center">Servers</th>
+              <th class="text-center">Limit</th>
+              <th class="text-center">SSL</th>
+              <th class="text-center">Public</th>
+              <th style="width:140px;text-align:right">Actions</th>
             </tr>
           </thead>
           <tbody>
-          <% for (const v of vms) { %>
-            <tr>
-              <td>
-                <div class="flex" style="gap:10px">
-                  <div style="width:32px;height:32px;border-radius:9px;background:var(--glass);display:grid;place-items:center;border:1px solid var(--border)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-2)" stroke-width="2" width="16" height="16"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
+            <% for (const n of nodeList) { 
+                 const locName = n.location ? n.location.short : 'local';
+                 const isSsl = n.scheme === 'https';
+            %>
+              <tr class="node-row" data-search="<%= `${n.name} ${n.fqdn} ${locName}`.toLowerCase() %>">
+                <td style="text-align:center;color:var(--text-muted);cursor:grab">⋮⋮</td>
+                <% if (user && (user.root_admin || user.role === 'admin')) { %>
+                  <td style="text-align:center">
+                    <input type="checkbox" class="ma-node-check" data-node-id="<%= n.id %>" data-node-name="<%= n.name %>" onchange="massUpdateUI()" style="width:16px;height:16px;cursor:pointer"/>
+                  </td>
+                <% } %>
+                <td style="text-align:center">
+                  <span class="pill pill-green" title="Wings daemon online" style="padding:0;width:9px;height:9px;border-radius:50%;display:inline-block"></span>
+                </td>
+                <td>
+                  <a href="/admin/nodes/<%= n.id %>" style="font-weight:700;color:#fff;text-decoration:none;font-size:13.5px">
+                    <%= n.name %>
+                  </a>
+                  <div class="muted text-sm mono" style="font-size:10.5px"><%= n.scheme %>://<%= n.fqdn %>:<%= n.daemonListen || 8080 %></div>
+                </td>
+                <td style="white-space:nowrap">
+                  <span class="pill pill-gray font-bold" style="font-size:11px"><%= locName %></span>
+                </td>
+                <td style="white-space:nowrap">
+                  <div class="font-bold text-white"><%= n.allocated_memory || 0 %> / <%= n.memory %> MiB</div>
+                </td>
+                <td style="white-space:nowrap">
+                  <div class="font-bold text-white"><%= n.allocated_disk || 0 %> / <%= n.disk %> MiB</div>
+                </td>
+                <td class="text-center">
+                  <span class="pill pill-blue font-bold" style="font-size:11px"><%= n.servers_count || 0 %></span>
+                </td>
+                <td class="text-center muted">
+                  <%= n.server_limit ? n.server_limit : '—' %>
+                </td>
+                <td class="text-center">
+                  <% if (isSsl) { %>
+                    <span style="color:#10b981" title="SSL Encrypted (HTTPS)">🔒</span>
+                  <% } else { %>
+                    <span style="color:#ef4444" title="HTTP (No SSL)">🔓</span>
+                  <% } %>
+                </td>
+                <td class="text-center">
+                  <% if (n.public) { %>
+                    <span title="Public Node" style="color:#38bdf8">👁</span>
+                  <% } else { %>
+                    <span title="Private Node" style="color:var(--text-muted)">🚫</span>
+                  <% } %>
+                </td>
+                <td style="text-align:right;white-space:nowrap">
+                  <div class="flex" style="gap:4px;justify-content:flex-end">
+                    <a class="btn btn-sm" href="/admin/nodes/<%= n.id %>" style="padding:3px 8px;font-size:11px">Manage</a>
+                    <a class="btn btn-sm" href="/admin/nodes/<%= n.id %>#settings" style="padding:3px 7px;font-size:11px" title="Settings">⚙</a>
                   </div>
-                  <div>
-                    <a href="/admin/servers/<%= v.id %>" style="font-weight:700;color:#fff;font-size:13.5px"><%= v.name %></a>
-                    <div class="muted text-sm mono" style="font-size:11px"><%= v.username %>@<%= v.hostname || 'localhost' %></div>
-                  </div>
-                </div>
-              </td>
-              <td><span class="muted font-bold"><%= v.owner_name %></span></td>
-              <td><span class="pill pill-blue font-bold"><%= v.os_type || '-' %></span></td>
-              <td><span class="muted"><%= v.cpus %> vCPU · <%= v.memory %>MB · <%= v.disk_size %></span></td>
-              <td class="mono font-bold" style="color:var(--accent-2)">Port <%= v.ssh_port %></td>
-              <td><span class="pill <%= v.status === 'running' ? 'pill-green' : 'pill-gray' %>"><%= v.status === 'running' ? '● Online' : 'Stopped' %></span></td>
-              <td class="right">
-                <div class="flex right" style="gap:6px">
-                  <a class="btn btn-sm" href="/servers/<%= v.id %>/console" title="Open SSH Console">Terminal</a>
-                  <a class="btn btn-sm" href="/admin/servers/<%= v.id %>">Manage</a>
-                </div>
-              </td>
-            </tr>
-          <% } %>
+                </td>
+              </tr>
+            <% } %>
           </tbody>
         </table>
       </div>
     <% } %>
   </div>
+
+  <!-- Live Cluster Telemetry Hero Bar (Preserves live host performance stats) -->
+  <div class="card">
+    <div class="flex-between mb-3">
+      <div class="card-title" style="margin:0;display:flex;align-items:center;gap:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        Primary Host Live Telemetry
+      </div>
+      <div class="flex" style="gap:8px">
+        <span class="pill pill-green font-bold">● <%= stats.hostname || 'Primary Hypervisor' %> Online</span>
+      </div>
+    </div>
+
+    <div class="grid grid-4" style="gap:16px">
+      <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:10px;padding:14px">
+        <div class="muted text-sm font-bold">Host CPU Load</div>
+        <div style="font-size:22px;font-weight:800;color:#fff;margin:4px 0"><%= stats.cpu ? stats.cpu.percent : 0 %>%</div>
+        <div class="muted text-sm mono" style="font-size:11px"><%= stats.cpu ? stats.cpu.cores_count : 2 %> Cores · Load <%= stats.cpu && stats.cpu.load_avg ? stats.cpu.load_avg.join(', ') : '0.00' %></div>
+      </div>
+      <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:10px;padding:14px">
+        <div class="muted text-sm font-bold">Host Memory (RAM)</div>
+        <div style="font-size:22px;font-weight:800;color:var(--accent);margin:4px 0"><%= stats.memory ? stats.memory.percent : 0 %>%</div>
+        <div class="muted text-sm mono" style="font-size:11px"><%= stats.memory ? `${stats.memory.used_mb} / ${stats.memory.total_mb} MB` : '0 MB' %></div>
+      </div>
+      <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:10px;padding:14px">
+        <div class="muted text-sm font-bold">Host Disk Usage</div>
+        <div style="font-size:22px;font-weight:800;color:#10b981;margin:4px 0"><%= stats.disk ? stats.disk.percent : 0 %>%</div>
+        <div class="muted text-sm mono" style="font-size:11px"><%= stats.disk ? `${stats.disk.used_gb} / ${stats.disk.total_gb} GB` : '0 GB' %></div>
+      </div>
+      <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:10px;padding:14px">
+        <div class="muted text-sm font-bold">System Uptime</div>
+        <div style="font-size:20px;font-weight:800;color:#fbbf24;margin:4px 0"><%= Math.floor((stats.uptime_seconds || 0) / 3600) %>h <%= Math.floor(((stats.uptime_seconds || 0) % 3600) / 60) %>m</div>
+        <div class="muted text-sm" style="font-size:11px">Process: <%= Math.floor((stats.process_uptime || 0) / 60) %>m</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <%- include('../partials/music') %>
 <%- include('../partials/foot') %>
 
-<!-- Node Telemetry JSON Payload -->
-<script id="nodeTelemetryHistory" type="application/json">
-<%- JSON.stringify(nodeStats.history || { cpu: [], memory: [], net_rx: [], net_tx: [] }) %>
-</script>
-
 <script>
-let nodePollInterval = null;
-let historyData = { cpu: [], memory: [], net_rx: [], net_tx: [] };
-
-try {
-  const rawHist = document.getElementById('nodeTelemetryHistory');
-  if (rawHist && rawHist.textContent) {
-    historyData = JSON.parse(rawHist.textContent.trim());
-  }
-} catch (e) {
-  console.warn('Failed to parse telemetry history:', e);
-}
-
-function formatUptime(sec) {
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const s = sec % 60;
-  return `${h}h ${m}m ${s}s`;
-}
-
-// Canvas Waveform Chart Renderer
-function drawWaveform(canvasId, seriesA, seriesB, colorA, colorB, maxVal = 100) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const rect = canvas.getBoundingClientRect();
-
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  ctx.scale(dpr, dpr);
-
-  const w = rect.width;
-  const h = rect.height;
-
-  ctx.clearRect(0, 0, w, h);
-
-  // Background Grid Lines
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-  ctx.lineWidth = 1;
-  for (let y = 0; y <= h; y += h / 4) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(w, y);
-    ctx.stroke();
-  }
-
-  function drawLineSeries(data, strokeColor, fillColor) {
-    if (!data || data.length < 2) return;
-    const step = w / (data.length - 1);
-
-    ctx.beginPath();
-    data.forEach((val, i) => {
-      const clamped = Math.max(0, Math.min(maxVal, val));
-      const x = i * step;
-      const y = h - (clamped / maxVal) * (h - 14) - 6;
-      if (i === 0) ctx.moveTo(x, y);
-      else {
-        const prevX = (i - 1) * step;
-        const prevClamped = Math.max(0, Math.min(maxVal, data[i - 1]));
-        const prevY = h - (prevClamped / maxVal) * (h - 14) - 6;
-        const cpX = (prevX + x) / 2;
-        ctx.bezierCurveTo(cpX, prevY, cpX, y, x, y);
-      }
-    });
-
-    ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = 2.2;
-    ctx.stroke();
-
-    // Fill Area under curve
-    ctx.lineTo(w, h);
-    ctx.lineTo(0, h);
-    ctx.closePath();
-    const grad = ctx.createLinearGradient(0, 0, 0, h);
-    grad.addColorStop(0, fillColor);
-    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = grad;
-    ctx.fill();
-  }
-
-  if (seriesB && seriesB.length) {
-    drawLineSeries(seriesB, colorB, 'rgba(52, 211, 153, 0.15)');
-  }
-  if (seriesA && seriesA.length) {
-    drawLineSeries(seriesA, colorA, 'rgba(56, 189, 248, 0.25)');
-  }
-}
-
-function renderCharts() {
-  drawWaveform('cpuMemChart', historyData.cpu, historyData.memory, '#38bdf8', '#34d399', 100);
-  const maxNet = Math.max(100, ...(historyData.net_rx || [0]), ...(historyData.net_tx || [0]));
-  drawWaveform('netChart', historyData.net_rx, historyData.net_tx, '#38bdf8', '#f59e0b', maxNet);
-}
-
-function initProgressBarWidths() {
-  document.querySelectorAll('[data-init-width]').forEach((el) => {
-    const w = el.getAttribute('data-init-width');
-    if (w) el.style.width = w + '%';
+// Filter Search Logic
+document.getElementById('nodeFilter')?.addEventListener('input', function() {
+  const q = this.value.toLowerCase().trim();
+  let count = 0;
+  document.querySelectorAll('.node-row').forEach(row => {
+    const text = row.getAttribute('data-search') || '';
+    const match = !q || text.includes(q);
+    row.style.display = match ? '' : 'none';
+    if (match) count++;
   });
+  const countEl = document.getElementById('nodeCount');
+  if (countEl) countEl.textContent = count;
+});
+
+// Mass Actions Logic
+function massGetSelectedIds() {
+  return Array.from(document.querySelectorAll('.ma-node-check:checked'))
+              .map(cb => parseInt(cb.getAttribute('data-node-id'), 10));
 }
 
-async function fetchNodeLiveStatus(manual = false) {
-  try {
-    const res = await fetch('/admin/nodes/status', {
-      headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + vpToken() }
-    });
-    if (!res.ok) return;
-    const d = await res.json();
-    if (!d.ok || !d.stats) return;
+function massUpdateUI() {
+  const ids = massGetSelectedIds();
+  const count = ids.length;
+  const countEl = document.getElementById('ma-selected-count');
+  if (countEl) countEl.textContent = `${count} node${count === 1 ? '' : 's'} selected`;
 
-    const s = d.stats;
+  const disabled = count === 0;
+  ['ma-btn-appname', 'ma-btn-start', 'ma-btn-restart', 'ma-btn-stop'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = disabled;
+  });
 
-    // Update Uptime & Density
-    const upEl = document.getElementById('nodeUptimeText');
-    if (upEl) upEl.textContent = formatUptime(s.uptime_seconds);
-    const densEl = document.getElementById('nodeVmDensityText');
-    if (densEl) densEl.textContent = `${s.vms.running} / ${s.vms.total} Active`;
-
-    // CPU Updates
-    const cpuVal = document.getElementById('cpuValueText');
-    if (cpuVal) cpuVal.innerHTML = `${s.cpu.percent}<span style="font-size:16px;color:var(--text-dim)">%</span>`;
-    const cpuBadge = document.getElementById('cpuBadge');
-    if (cpuBadge) cpuBadge.textContent = `${s.cpu.percent}%`;
-    const cpuBar = document.getElementById('cpuBarFill');
-    if (cpuBar) cpuBar.style.width = `${Math.min(100, Math.max(2, s.cpu.percent))}%`;
-    const cpuCores = document.getElementById('cpuCoresText');
-    if (cpuCores) cpuCores.textContent = `${s.cpu.cores_count} Cores · Load: ${s.cpu.load_avg.join(', ')}`;
-
-    // Per-core Matrix
-    if (s.cpu.per_core) {
-      s.cpu.per_core.forEach((corePct, idx) => {
-        const b = document.getElementById('coreBadge' + idx);
-        if (b) b.textContent = `${corePct}%`;
-        const bar = document.getElementById('coreBar' + idx);
-        if (bar) bar.style.width = `${Math.min(100, Math.max(2, corePct))}%`;
-      });
-    }
-
-    // Memory Updates
-    const memVal = document.getElementById('memValueText');
-    if (memVal) memVal.innerHTML = `${(s.memory.used_mb / 1024).toFixed(1)}<span style="font-size:16px;color:var(--text-dim)"> / ${(s.memory.total_mb / 1024).toFixed(1)} GB</span>`;
-    const memBadge = document.getElementById('memBadge');
-    if (memBadge) memBadge.textContent = `${s.memory.percent}%`;
-    const memBar = document.getElementById('memBarFill');
-    if (memBar) memBar.style.width = `${Math.min(100, Math.max(2, s.memory.percent))}%`;
-    const memFree = document.getElementById('memFreeText');
-    if (memFree) memFree.textContent = `${(s.memory.free_mb / 1024).toFixed(1)} GB Free · ${s.vms.allocated_memory_mb} MB in VMs`;
-
-    // Disk Updates
-    if (s.disk) {
-      const diskVal = document.getElementById('diskValueText');
-      if (diskVal) diskVal.innerHTML = `${s.disk.used_gb}<span style="font-size:16px;color:var(--text-dim)"> / ${s.disk.total_gb} GB</span>`;
-      const diskBadge = document.getElementById('diskBadge');
-      if (diskBadge) diskBadge.textContent = `${s.disk.percent}%`;
-      const diskBar = document.getElementById('diskBarFill');
-      if (diskBar) diskBar.style.width = `${Math.min(100, Math.max(2, s.disk.percent))}%`;
-      const diskFree = document.getElementById('diskFreeText');
-      if (diskFree) diskFree.textContent = `${s.disk.free_gb} GB Available on Root`;
-    }
-
-    // Network Updates
-    if (s.network) {
-      const netVal = document.getElementById('netRxTxText');
-      if (netVal) netVal.innerHTML = `<span style="color:#38bdf8">↓ ${s.network.rx_kbps}</span> <span style="font-size:14px;color:var(--text-dim)">KB/s</span>`;
-      const netDetail = document.getElementById('netTxDetailText');
-      if (netDetail) netDetail.textContent = `↑ Outbound: ${s.network.tx_kbps} KB/s · Total: ${(s.network.rx_bytes / (1024**3)).toFixed(2)} GB In`;
-    }
-
-    // Chart Rolling History Updates
-    if (s.history) {
-      historyData = s.history;
-      renderCharts();
-    }
-
-    if (manual) VP.toast('Performance statistics refreshed', 'success');
-
-  } catch (err) {
-    console.error('Failed to poll node statistics:', err);
+  const allCb = document.getElementById('ma-check-all');
+  if (allCb) {
+    const all = document.querySelectorAll('.ma-node-check');
+    allCb.checked = all.length > 0 && count === all.length;
+    allCb.indeterminate = count > 0 && count < all.length;
   }
 }
 
-// Start live polling & chart rendering
-document.addEventListener('DOMContentLoaded', () => {
-  initProgressBarWidths();
-  renderCharts();
-  nodePollInterval = setInterval(fetchNodeLiveStatus, 2000);
-});
-window.addEventListener('resize', renderCharts);
-window.addEventListener('beforeunload', () => {
-  if (nodePollInterval) clearInterval(nodePollInterval);
-});
+function massToggleAll(checked) {
+  document.querySelectorAll('.ma-node-check').forEach(cb => { cb.checked = checked; });
+  massUpdateUI();
+}
+
+function massSelectAll() { massToggleAll(true); }
+function massDeselectAll() { massToggleAll(false); }
+
+async function massApplyAppName() {
+  const ids = massGetSelectedIds();
+  if (!ids.length) return;
+  const app_name = document.getElementById('ma-app-name').value.trim();
+  const resultEl = document.getElementById('ma-appname-result');
+  if (resultEl) resultEl.innerHTML = '<span class="muted">Applying app name...</span>';
+
+  try {
+    const res = await VP.api('/admin/nodes/mass/app-name', {
+      method: 'POST',
+      body: { node_ids: ids, app_name }
+    });
+    VP.toast(`Updated ${res.updated || 0} node(s)`, 'success');
+    if (resultEl) resultEl.innerHTML = `<span style="color:#10b981">✔ Updated ${res.updated || 0} node(s)</span>`;
+  } catch (e) {
+    VP.toast(e.message, 'error');
+    if (resultEl) resultEl.innerHTML = `<span style="color:#ef4444">✖ ${e.message}</span>`;
+  }
+}
+
+async function massWingsAction(action) {
+  const ids = massGetSelectedIds();
+  if (!ids.length) return;
+  const resultEl = document.getElementById('ma-wings-result');
+  if (resultEl) resultEl.innerHTML = `<span class="muted">Sending ${action}...</span>`;
+
+  try {
+    await VP.api('/admin/nodes/mass/wings-control', {
+      method: 'POST',
+      body: { node_ids: ids, action }
+    });
+    VP.toast(`Wings action '${action}' dispatched to ${ids.length} node(s)`, 'success');
+    if (resultEl) resultEl.innerHTML = `<span style="color:#10b981">✔ Dispatched to ${ids.length} node(s)</span>`;
+  } catch (e) {
+    VP.toast(e.message, 'error');
+    if (resultEl) resultEl.innerHTML = `<span style="color:#ef4444">✖ ${e.message}</span>`;
+  }
+}
 </script>

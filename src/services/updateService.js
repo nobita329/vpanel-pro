@@ -18,6 +18,11 @@ class UpdateService extends EventEmitter {
     this.cronTimer = null;
   }
 
+  clearCache() {
+    this.cachedRelease = null;
+    this.lastCheckedTime = null;
+  }
+
   getCurrentVersion() {
     try {
       const pkgPath = path.join(config.root, 'package.json');

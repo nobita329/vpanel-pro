@@ -70,17 +70,6 @@ const MODULE_REGISTRY = [
     isCore: true,
   },
   {
-    slug: 'billing',
-    name: 'Billing & Resource Plans',
-    category: 'Monetization',
-    description: 'Tiered VM packages, client invoice ledger, promo discount coupons, and payment gateways',
-    icon: 'credit-card',
-    route: '/admin/billing',
-    version: '1.0.0',
-    enabled: true,
-    isCore: true,
-  },
-  {
     slug: 'updates',
     name: 'System Updates',
     category: 'System',

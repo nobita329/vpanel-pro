@@ -18,14 +18,15 @@ router.post('/auth/login', json, async (req, res, next) => {
   try {
     const { username, password, code } = req.body;
     const ip = req.ip || req.socket.remoteAddress;
-    const result = await authService.attemptLogin(String(username || '').trim(), String(password || ''), ip);
+    const userAgent = req.headers['user-agent'] || '';
+    const result = await authService.attemptLogin(String(username || '').trim(), String(password || ''), ip, userAgent);
     if (!result.ok) return res.status(401).json({ error: result.error });
     if (result.tfaRequired) {
       if (!code) return res.json({ tfa_required: true, user: authService.publicUser(result.user) });
       const check = authService.confirmTfa(result.user, code);
       if (!check.ok) return res.status(401).json({ error: check.error });
     }
-    const { token, user } = await authService.finishLogin(result.user, ip);
+    const { token, user } = await authService.finishLogin(result.user, ip, userAgent);
     return res.json({ token, user });
   } catch (err) {
     next(err);

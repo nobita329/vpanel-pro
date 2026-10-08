@@ -314,15 +314,21 @@ async function submitTransfer() {
 }
 
 function copyText(t) {
-  navigator.clipboard.writeText(t)
-    .then(() => VP.toast('Copied to clipboard!', 'success'))
-    .catch(() => VP.toast('Failed to copy', 'error'));
+  if (VP.copyText) {
+    VP.copyText(t);
+  } else {
+    navigator.clipboard.writeText(t)
+      .then(() => VP.toast('Copied to clipboard!', 'success'))
+      .catch(() => VP.toast('Failed to copy', 'error'));
+  }
 }
 
 async function power(action) {
   const btn = document.getElementById(action === 'stop' ? 'btnStop' : action === 'restart' ? 'btnRestart' : 'btnStart');
   if (btn) btn.disabled = true;
   try {
+    if (action === 'start' || action === 'restart') VP.playSound && VP.playSound('online');
+    if (action === 'stop') VP.playSound && VP.playSound('offline');
     VP.toast(`Sending ${action} command...`, 'info');
     await VP.api(`/servers/<%= vm.id %>/power`, { method: 'POST', body: { action } });
     VP.toast(`Server ${action} command sent successfully`, 'success');

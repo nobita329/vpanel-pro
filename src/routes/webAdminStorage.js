@@ -10,11 +10,10 @@ router.use(requireAdmin);
 
 router.get('/', async (req, res, next) => {
   try {
-    const [pools, isos, volumes, templates] = await Promise.all([
+    const [pools, isos, volumes] = await Promise.all([
       storageService.listPools(),
       storageService.listIsos(),
       storageService.listVolumes(),
-      templateService.listTemplates(),
     ]);
 
     res.render('admin/storage', {
@@ -24,8 +23,6 @@ router.get('/', async (req, res, next) => {
       pools,
       isos,
       volumes,
-      templates,
-      templateRepo: templateService.getRepoUrl(),
     });
   } catch (e) {
     next(e);

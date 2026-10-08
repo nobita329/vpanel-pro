@@ -209,7 +209,6 @@
       { title: '👤 User Management', subtitle: 'View users, roles, and impersonate', category: 'Admin Panel', url: '/admin/users', icon: 'users' },
       { title: '💾 Storage Pools & ISOs', subtitle: 'Local, LVM, NFS and ISO Library', category: 'Admin Panel', url: '/admin/storage', icon: 'database' },
       { title: '🌐 Virtual Network & Firewall', subtitle: 'Bridges, IP pools, NAT and firewall rules', category: 'Admin Panel', url: '/admin/network', icon: 'network' },
-      { title: '💳 Billing & Resource Plans', subtitle: 'Pricing tiers, invoices, coupons & gateways', category: 'Admin Panel', url: '/admin/billing', icon: 'credit-card' },
       { title: '🗄️ MongoDB Management Studio', subtitle: 'Databases, collections, documents & indexes', category: 'Admin Panel', url: '/admin/mongodb', icon: 'layers' },
       { title: '⚡ API Keys & Webhooks', subtitle: 'Scoped tokens and HTTP webhooks', category: 'Admin Panel', url: '/admin/api', icon: 'key' },
       { title: '🧩 Plugins Marketplace', subtitle: 'Discord, Telegram and custom plugins', category: 'Admin Panel', url: '/admin/plugins', icon: 'package' },
@@ -223,8 +222,24 @@
     ...(isAdmin ? [
       { title: 'Download ISO Image', subtitle: 'Direct cloud download Ubuntu/Debian/Alpine', category: 'Quick Actions', url: '/admin/storage', icon: 'download' },
       { title: 'Add Firewall Security Rule', subtitle: 'Allow/drop ports and CIDR ranges', category: 'Quick Actions', url: '/admin/network', icon: 'shield' },
-      { title: 'Create Discount Coupon', subtitle: 'Add promo code for VM plans', category: 'Quick Actions', url: '/admin/billing', icon: 'tag' },
       { title: 'Generate Live API Key', subtitle: 'Create scoped REST API token', category: 'Quick Actions', url: '/admin/api', icon: 'key' },
+      { title: '🧹 Clear All System Caches', subtitle: 'Purge RAM buffers, query caches, and expired tokens', category: 'Quick Actions', action: async () => {
+        if (typeof closeCommandPalette === 'function') closeCommandPalette();
+        try {
+          if (typeof VP !== 'undefined') {
+            VP.toast('Purging system caches...', 'info');
+            await VP.api('/admin/cache/clear', { method: 'POST' });
+            VP.toast('All system caches cleared successfully!', 'success');
+          } else {
+            await fetch('/admin/cache/clear', { method: 'POST' });
+            alert('All system caches cleared successfully!');
+          }
+        } catch (e) {
+          if (typeof VP !== 'undefined') VP.toast(e.message || 'Cache clear failed', 'error');
+          else alert(e.message || 'Cache clear failed');
+        }
+      }, icon: 'refresh-cw' },
+      { title: '⚡ Cache & Performance Settings', subtitle: 'Manage auto cache clear schedules and memory metrics', category: 'Admin Panel', url: '/admin/settings?tab=cache', icon: 'sliders' },
     ] : []),
 
     // Themes
@@ -292,7 +307,7 @@
         <div style="padding:32px 16px;text-align:center;color:#64748b">
           <div style="font-size:24px;margin-bottom:6px">🔍</div>
           <div style="font-size:14px;font-weight:600;color:#94a3b8">No matching commands found</div>
-          <div style="font-size:12px;margin-top:4px">Try searching for "servers", "billing", "theme", or "storage"</div>
+          <div style="font-size:12px;margin-top:4px">Try searching for "servers", "users", "theme", or "storage"</div>
         </div>
       `;
       activeIndex = 0;

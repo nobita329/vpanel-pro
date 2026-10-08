@@ -7,91 +7,99 @@ function act(p, current) { return p === current ? 'active' : ''; }
 function vmNav(icon, label, slug, current) {
   if (!hasVm) return '';
   const href = `/servers/${vm.id}/${slug}`;
-  return `<a href="${href}" class="nav-link ${act(slug, current)}">${icon}<span>${label}</span></a>`;
+  return `<a href="${href}" class="nav-link ${act(slug, current)}"><span class="v-icon">${icon}</span><span>${label}</span></a>`;
 }
 
-const iconOverview = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>';
-const iconConsole = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17l6-5-6-5M12 19h8"/></svg>';
-const iconFiles = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
-const iconBackups = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>';
-const iconClock = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
-const iconRocket = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09zM12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2zM9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>';
-const iconSettings = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
-const iconUser = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
-const iconUsers = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
-const iconActivity = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>';
-const iconResources = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18"/></svg>';
-const iconServer = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>';
-const iconHome = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2 2z"/><path d="M9 22V12h6v10"/></svg>';
-const iconPalette = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>';
-const iconLogout = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>';
-const iconShield = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>';
-const iconKey = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>';
-const iconLayers = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>';
+// Crisp Lucide / Arix Icons
+const iconHome = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2 2z"/><path d="M9 22V12h6v10"/></svg>';
+const iconServer = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>';
+const iconActivity = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
+const iconStorage = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
+const iconNetwork = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"/></svg>';
+const iconMongo = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>';
+const iconUsers = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+const iconKey = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>';
+const iconLayers = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>';
+const iconShield = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>';
+const iconSettings = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+const iconUpdates = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
+const iconWand = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="m17.8 11.8 1.4 1.4"/><path d="m17.8 6.2 1.4-1.4"/><path d="m12.2 11.8-1.4 1.4"/><path d="m12.2 6.2-1.4-1.4"/><path d="M9 21 3 15"/></svg>';
+const iconLogout = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
+const iconUser = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+
+// Server Tab Icons
+const iconOverview = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>';
+const iconConsole = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>';
+const iconFiles = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>';
+const iconBackups = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+const iconClock = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+const iconRocket = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>';
 %>
 <div class="sidebar">
   <% if (isAdminView) { %>
-    <!-- ================= 👑 ADMIN PANEL SIDEBAR ================= -->
+    <!-- ================= 👑 ARIX ADMIN PANEL SIDEBAR ================= -->
     <div class="nav-section-title" style="display:flex;align-items:center;justify-content:space-between">
-      <span>Admin Control</span>
-      <span class="pill pill-blue" style="font-size:10px">Admin</span>
+      <span>Basic Administration</span>
+      <span class="pill pill-primary" style="font-size:9.5px;padding:2px 8px">ADMIN</span>
     </div>
     <a href="/admin" class="nav-link <%= act('admin-dashboard', page) %>"><span class="v-icon"><%- iconHome %></span><span>Overview</span></a>
-    <a href="/admin/servers" class="nav-link <%= act('admin-servers', page) %>"><span class="v-icon"><%- iconServer %></span><span>Virtual Machines</span></a>
-    <a href="/admin/resources" class="nav-link <%= act('admin-resources', page) %>"><span class="v-icon"><%- iconResources %></span><span>Resources</span></a>
-    <a href="/admin/nodes" class="nav-link <%= act('admin-nodes', page) %>"><span class="v-icon"><%- iconActivity %></span><span>Nodes & Monitoring</span></a>
-    <a href="/admin/storage" class="nav-link <%= act('admin-storage', page) %>"><span class="v-icon"><%- iconFiles %></span><span>Storage & ISOs</span></a>
-    <a href="/admin/network" class="nav-link <%= act('admin-network', page) %>"><span class="v-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"/></svg></span><span>Network & Firewall</span></a>
-    <a href="/admin/mongodb" class="nav-link <%= act('admin-mongodb', page) %>"><span class="v-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></span><span>MongoDB Studio</span></a>
-    <a href="/admin/users" class="nav-link <%= act('admin-users', page) %>" ><span class="v-icon"><%- iconUsers %></span><span>User Management</span></a>
-    <a href="/admin/billing" class="nav-link <%= act('admin-billing', page) %>" ><span class="v-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span><span>Billing & Plans</span></a>
-    <a href="/admin/api" class="nav-link <%= act('admin-api', page) %>" ><span class="v-icon"><%- iconKey %></span><span>API & Webhooks</span></a>
-    <a href="/admin/plugins" class="nav-link <%= act('admin-plugins', page) %>" ><span class="v-icon"><%- iconLayers %></span><span>Plugins & Extensions</span></a>
-    <a href="/admin/audit" class="nav-link <%= act('admin-audit', page) %>" ><span class="v-icon"><%- iconShield %></span><span>Audit & Security</span></a>
-    <a href="/admin/settings" class="nav-link <%= act('admin-settings', page) %>" ><span class="v-icon"><%- iconPalette %></span><span>Settings & Themes</span></a>
+    <a href="/admin/settings" class="nav-link <%= act('admin-settings', page) %>"><span class="v-icon"><%- iconSettings %></span><span>Settings</span></a>
+    <a href="/admin/settings?tab=arix" class="nav-link arix-nav-glow"><span class="v-icon"><%- iconWand %></span><span>Arix Theme</span></a>
+    <a href="/admin/api" class="nav-link <%= act('admin-api', page) %>"><span class="v-icon"><%- iconKey %></span><span>Application API</span></a>
+
+    <div class="nav-section-title">Management</div>
+    <a href="/admin/servers" class="nav-link <%= act('admin-servers', page) %>"><span class="v-icon"><%- iconServer %></span><span>Servers &amp; VMs</span></a>
+    <a href="/admin/nodes" class="nav-link <%= act('admin-nodes', page) %>"><span class="v-icon"><%- iconActivity %></span><span>Nodes &amp; Monitoring</span></a>
+    <a href="/admin/users" class="nav-link <%= act('admin-users', page) %>"><span class="v-icon"><%- iconUsers %></span><span>Users</span></a>
+    <a href="/admin/storage" class="nav-link <%= act('admin-storage', page) %>"><span class="v-icon"><%- iconStorage %></span><span>Storage &amp; ISOs</span></a>
+    <a href="/admin/network" class="nav-link <%= act('admin-network', page) %>"><span class="v-icon"><%- iconNetwork %></span><span>Network &amp; Firewall</span></a>
+    <a href="/admin/mongodb" class="nav-link <%= act('admin-mongodb', page) %>"><span class="v-icon"><%- iconMongo %></span><span>Databases (MongoDB)</span></a>
+    <a href="/admin/plugins" class="nav-link <%= act('admin-plugins', page) %>"><span class="v-icon"><%- iconLayers %></span><span>Plugins &amp; Addons</span></a>
+    <a href="/admin/audit" class="nav-link <%= act('admin-audit', page) %>"><span class="v-icon"><%- iconShield %></span><span>Audit &amp; Security</span></a>
+
     <% const hasUpdateAvailable = settings && settings['update.available'] === '1'; %>
     <a href="/admin/updates" class="nav-link <%= act('admin-updates', page) %>" style="display:flex;align-items:center;justify-content:space-between">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span class="v-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="v-icon"><%- iconUpdates %></span>
         <span>Updates</span>
       </div>
       <% if (hasUpdateAvailable) { %>
-        <span class="pill font-bold" style="background:#f59e0b;color:#1e1002;font-size:10px;padding:2px 7px;border-radius:10px;letter-spacing:0.02em">NEW</span>
+        <span class="pill font-bold" style="background:#f59e0b;color:#1e1002;font-size:10px;padding:2px 7px;border-radius:10px">NEW</span>
       <% } %>
     </a>
 
     <div class="nav-section-title">Quick Switch</div>
     <a href="/dashboard" class="nav-link"><span class="v-icon"><%- iconUser %></span><span>Switch to User View</span></a>
+
   <% } else { %>
-    <!-- ================= 👤 USER PANEL SIDEBAR ================= -->
-    <div class="nav-section-title">Menu</div>
+    <!-- ================= 👤 ARIX USER PANEL SIDEBAR ================= -->
+    <div class="nav-section-title">Navigation</div>
     <a href="/dashboard" class="nav-link <%= act('dashboard', page) %>"><span class="v-icon"><%- iconHome %></span><span>Dashboard</span></a>
 
     <% if (hasVm) { %>
-    <div class="nav-section-title">Server: <%= vm.name %></div>
-    <%- vmNav(iconOverview, 'Overview', 'overview', page) %>
-    <%- vmNav(iconConsole, 'Terminal', 'console', page) %>
-    <%- vmNav(iconFiles, 'File Manager', 'files', page) %>
-    <%- vmNav(iconBackups, 'Backups', 'backups', page) %>
-    <%- vmNav(iconClock, 'Schedules', 'schedules', page) %>
-    <%- vmNav(iconRocket, 'Startup & Boot', 'startup', page) %>
-    <%- vmNav(iconUsers, 'Subusers', 'subusers', page) %>
-    <%- vmNav(iconSettings, 'Settings', 'settings', page) %>
-    <%- vmNav(iconActivity, 'Activity', 'activity', page) %>
+      <div class="nav-section-title">Server: <%= vm.name %></div>
+      <%- vmNav(iconOverview, 'Overview', 'overview', page) %>
+      <%- vmNav(iconConsole, 'Terminal / Console', 'console', page) %>
+      <%- vmNav(iconFiles, 'File Manager', 'files', page) %>
+      <%- vmNav(iconBackups, 'Backups', 'backups', page) %>
+      <%- vmNav(iconClock, 'Schedules', 'schedules', page) %>
+      <%- vmNav(iconRocket, 'Startup &amp; Boot', 'startup', page) %>
+      <%- vmNav(iconUsers, 'Subusers', 'subusers', page) %>
+      <%- vmNav(iconSettings, 'Settings', 'settings', page) %>
+      <%- vmNav(iconActivity, 'Activity Logs', 'activity', page) %>
     <% } %>
 
-<div class="nav-section-title">Account</div>
-<a href="/profile" class="nav-link <%= act('profile', page) %>"><span class="v-icon"><%- iconUser %></span><span>Profile</span></a>
-<a href="/settings" class="nav-link <%= act('userSettings', page) %>"><span class="v-icon"><%- iconSettings %></span><span>Settings</span></a>
-<a href="/activity" class="nav-link <%= act('activity', page) %>"><span class="v-icon"><%- iconActivity %></span><span>Activity</span></a>
-<a href="/resources" class="nav-link <%= act('resources', page) %>"><span class="v-icon"><%- iconResources %></span><span>Resources</span></a>
+    <div class="nav-section-title">Account</div>
+    <a href="/profile" class="nav-link <%= act('profile', page) %>"><span class="v-icon"><%- iconUser %></span><span>Profile</span></a>
+    <a href="/settings" class="nav-link <%= act('userSettings', page) %>"><span class="v-icon"><%- iconSettings %></span><span>Account Settings</span></a>
+    <a href="/activity" class="nav-link <%= act('activity', page) %>"><span class="v-icon"><%- iconActivity %></span><span>Activity</span></a>
 
     <% if (isAdmin) { %>
-    <div class="nav-section-title">Admin Access</div>
-    <a href="/admin" class="nav-link" style="color:var(--accent);font-weight:700"><span class="v-icon"><%- iconShield %></span><span>👑 Admin Panel</span></a>
+      <div class="nav-section-title">Administration</div>
+      <a href="/admin" class="nav-link arix-nav-glow" style="font-weight:700"><span class="v-icon"><%- iconShield %></span><span>👑 Admin Panel</span></a>
     <% } %>
   <% } %>
 
-  <div class="nav-section-title">Session</div>
-  <a href="/logout" class="nav-link"><span class="v-icon"><%- iconLogout %></span><span>Logout</span></a>
+  <div class="nav-section-title" style="margin-top:auto">Session</div>
+  <a href="/logout" class="nav-link" style="color:var(--gray-400)"><span class="v-icon"><%- iconLogout %></span><span>Logout</span></a>
 </div>

@@ -103,12 +103,31 @@ window.VP = (() => {
     });
   });
 
-  return { toast, api, qs, qsa, el, fmtBytes, fmtDate, confirmDialog, hide, show, state };
+  function playSound(type) {
+    try {
+      const src = type === 'online' ? '/arix/online.mp3' : type === 'offline' ? '/arix/offline.mp3' : '/arix/copy.mp3';
+      const a = new Audio(src);
+      a.volume = 0.4;
+      a.play().catch(() => {});
+    } catch (_) {}
+  }
+
+  function copyText(t) {
+    if (!navigator.clipboard) return;
+    navigator.clipboard.writeText(t)
+      .then(() => {
+        playSound('copy');
+        toast('Copied to clipboard!', 'success');
+      })
+      .catch(() => toast('Failed to copy', 'error'));
+  }
+
+  return { toast, api, qs, qsa, el, fmtBytes, fmtDate, confirmDialog, hide, show, state, playSound, copyText };
 })();
 
 (function () {
   const m = /(?:^|;\s*)theme=([^;]+)/.exec(document.cookie);
-  const local = localStorage.getItem('vpanel_theme');
+  const local = localStorage.getItem('arix_theme') || localStorage.getItem('vpanel_theme');
   const t = (m ? m[1] : null) || local || 'dark';
   document.documentElement.setAttribute('data-theme', t);
 })();

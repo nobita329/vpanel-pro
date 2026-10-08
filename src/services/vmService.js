@@ -231,6 +231,7 @@ function isRunning(vm) {
 }
 
 function statusOf(vm) {
+  if (vm && vm.suspended) return 'suspended';
   return isRunning(vm) ? 'running' : 'stopped';
 }
 
@@ -244,7 +245,8 @@ async function dbVms() {
     const u = userMap.get(v.owner_id);
     return {
       ...v,
-      owner_name: u ? u.username : 'Unknown',
+      owner_name: u ? (u.username || u.name) : 'Unknown',
+      owner_username: u ? u.username : 'Unknown',
       owner_email: u ? u.email : '',
     };
   });
@@ -254,11 +256,15 @@ function serializeVm(row) {
   if (!row) return null;
   let forwards = [];
   try { forwards = JSON.parse(row.port_forwards || '[]'); } catch (_) {}
+  const rawUuid = row.uuid || `vm-${String(row.id).padStart(8, '0')}`;
   const out = {
     ...row,
+    uuid: rawUuid,
+    uuidShort: rawUuid.slice(0, 8),
     port_forwards: forwards,
     gui_mode: !!row.gui_mode,
     start_on_boot: !!row.start_on_boot,
+    suspended: !!row.suspended,
     status: statusOf(row),
     dir: vmDir(row),
   };
@@ -565,7 +571,12 @@ async function remove(vm, user) {
 }
 
 async function update(vm, data, user) {
-  const fields = ['name', 'hostname', 'username', 'password', 'memory', 'cpus', 'disk_size', 'gui_mode', 'port_forwards', 'start_on_boot', 'startup_command', 'notes', 'owner_id'];
+  const fields = [
+    'name', 'hostname', 'username', 'password', 'memory', 'cpus', 'disk_size',
+    'gui_mode', 'port_forwards', 'start_on_boot', 'startup_command', 'notes',
+    'owner_id', 'description', 'external_id', 'exp_date', 'threads', 'swap',
+    'suspended', 'node_id', 'node_name'
+  ];
   const $set = {};
   for (const f of fields) {
     if (data[f] !== undefined) {

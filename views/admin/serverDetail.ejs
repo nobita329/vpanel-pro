@@ -1,231 +1,560 @@
-<%- include('../partials/head', { title: vm.name + ' - Admin' }) %>
+<%- include('../partials/head', { title: (vm && vm.name ? vm.name : 'Server') + ' - Admin' }) %>
 <%- include('../partials/ambient') %>
 <%- include('../partials/topbar') %>
 <%- include('../partials/sidebar') %>
+
+<%
+  const vmObj = (typeof vm !== 'undefined' && vm) || {};
+  const backupList = (typeof backups !== 'undefined' && backups) || [];
+  const scheduleList = (typeof schedules !== 'undefined' && schedules) || [];
+  const subList = (typeof subs !== 'undefined' && subs) || [];
+  const userList = (typeof allUsers !== 'undefined' && allUsers) || [];
+  const uptimeSec = (typeof uptime !== 'undefined') ? uptime : 0;
+%>
+
 <div class="main">
-  <div class="flex-between mb-3">
+  <!-- Breadcrumbs -->
+  <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+    <a href="/admin" style="color:var(--text-muted);text-decoration:none">Admin</a>
+    <span>/</span>
+    <a href="/admin/servers" style="color:var(--text-muted);text-decoration:none">Servers</a>
+    <span>/</span>
+    <span style="color:var(--accent);font-weight:600"><%= vmObj.name %></span>
+  </div>
+
+  <!-- Header & Power Actions -->
+  <div class="flex-between mb-3" style="flex-wrap:wrap;gap:12px">
     <div>
-      <div class="muted text-sm" style="margin-bottom:2px">
-        <a href="/admin/servers" style="color:var(--text-dim)">Admin / Servers</a> / <%= vm.name %>
-      </div>
-      <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.3px;display:flex;align-items:center;gap:12px">
-        <%= vm.name %>
-        <span class="pill <%= vm.status === 'running' ? 'pill-green' : 'pill-gray' %>">
-          <%= vm.status %>
-        </span>
+      <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.4px;margin:0;display:flex;align-items:center;gap:10px">
+        <%= vmObj.name %>
+        <% if (vmObj.suspended) { %>
+          <span class="pill pill-red font-bold" style="font-size:11px;padding:2px 8px">Suspended</span>
+        <% } else if (vmObj.status === 'running') { %>
+          <span class="pill pill-green font-bold" style="font-size:11px;padding:2px 8px">● Active</span>
+        <% } else { %>
+          <span class="pill pill-gray font-bold" style="font-size:11px;padding:2px 8px">Stopped</span>
+        <% } %>
       </h2>
+      <div class="muted text-sm mono" style="margin-top:4px">
+        <code><%= vmObj.uuid %></code> · <span class="muted"><%= vmObj.os_type || 'linux' %></span>
+      </div>
     </div>
 
-    <!-- Power & Admin Action Bar -->
-    <div class="flex" style="gap:8px">
-      <% if (vm.status === 'running') { %>
-        <button class="btn btn-sm btn-danger" onclick="action('stop')">Stop</button>
-        <button class="btn btn-sm btn-primary" onclick="action('restart')">Restart</button>
+    <!-- Power & Quick Bar -->
+    <div class="flex" style="gap:8px;flex-wrap:wrap">
+      <% if (vmObj.status === 'running') { %>
+        <button class="btn btn-sm btn-danger" onclick="serverAction('stop')">Stop</button>
+        <button class="btn btn-sm btn-primary" onclick="serverAction('restart')">Restart</button>
       <% } else { %>
-        <button class="btn btn-sm btn-green" onclick="action('start')">Start</button>
+        <button class="btn btn-sm btn-green" onclick="serverAction('start')">Start</button>
       <% } %>
-      <a class="btn btn-sm" href="/servers/<%= vm.id %>/console">Terminal</a>
-      <a class="btn btn-sm" href="/servers/<%= vm.id %>/console?tab=bootlog">Live Boot Logs</a>
-      <button class="btn btn-sm btn-danger" onclick="del()">Delete Server</button>
+      <a class="btn btn-sm" href="/servers/<%= vmObj.id %>/console">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="vertical-align:-2px;margin-right:4px"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        Terminal
+      </a>
+      <a class="btn btn-sm" href="/servers/<%= vmObj.id %>/console?tab=bootlog">Boot Logs</a>
+      <a class="btn btn-sm" href="/servers/<%= vmObj.id %>/console" target="_blank" title="Open Console in New Tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
     </div>
   </div>
 
-  <!-- Specs Cards -->
-  <div class="grid grid-4 mb-4">
-    <div class="stat">
-      <div class="stat-icon" style="background:rgba(99,102,241,0.15);color:#818cf8">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      </div>
-      <div>
-        <div class="stat-value"><%= vm.cpus %></div>
-        <div class="stat-label">vCPUs</div>
-      </div>
-    </div>
-
-    <div class="stat">
-      <div class="stat-icon" style="background:rgba(56,189,248,0.15);color:#38bdf8">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
-      </div>
-      <div>
-        <div class="stat-value"><%= vm.memory %> MB</div>
-        <div class="stat-label">Memory</div>
-      </div>
-    </div>
-
-    <div class="stat">
-      <div class="stat-icon" style="background:rgba(245,158,11,0.15);color:#fbbf24">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
-      </div>
-      <div>
-        <div class="stat-value"><%= vm.disk_size %></div>
-        <div class="stat-label">Disk Size</div>
-      </div>
-    </div>
-
-    <div class="stat">
-      <div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#34d399">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l2 2M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/></svg>
-      </div>
-      <div>
-        <div class="stat-value"><%= vm.status === 'running' ? (Math.floor(uptime/60) + 'm') : '—' %></div>
-        <div class="stat-label">Uptime</div>
-      </div>
-    </div>
+  <!-- Pterodactyl-Style Sub-Navigation Tabs matching navigation.blade.php -->
+  <div style="margin-bottom:20px;border-bottom:1px solid var(--border);display:flex;gap:4px;overflow-x:auto;padding-bottom:1px">
+    <button type="button" class="tab-btn active" id="tabNav-about" onclick="showServerTab('about')">
+      About
+    </button>
+    <button type="button" class="tab-btn" id="tabNav-details" onclick="showServerTab('details')">
+      Details
+    </button>
+    <button type="button" class="tab-btn" id="tabNav-build" onclick="showServerTab('build')">
+      Build Configuration
+    </button>
+    <button type="button" class="tab-btn" id="tabNav-manage" onclick="showServerTab('manage')">
+      Manage
+    </button>
+    <button type="button" class="tab-btn tab-btn-danger" id="tabNav-delete" onclick="showServerTab('delete')">
+      Delete
+    </button>
   </div>
 
-  <div class="grid grid-2">
-    <!-- Server Details -->
-    <div class="card">
-      <div class="card-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
-        Server Configuration &amp; Metadata
+  <style>
+    .tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 13.5px;
+      padding: 9px 16px;
+      cursor: pointer;
+      border-radius: 6px 6px 0 0;
+      transition: all 0.15s ease;
+    }
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .tab-btn-danger.active {
+      color: #ef4444;
+      border-bottom-color: #ef4444;
+    }
+  </style>
+
+  <!-- ==================== TAB 1: ABOUT (Overview) ==================== -->
+  <div id="tabContent-about" class="server-tab-content">
+    <!-- Specs Cards -->
+    <div class="grid grid-4 mb-4" style="gap:14px">
+      <div class="stat">
+        <div class="stat-icon" style="background:rgba(99,102,241,0.15);color:#818cf8">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div>
+          <div class="stat-value"><%= vmObj.cpus %></div>
+          <div class="stat-label">vCPUs</div>
+        </div>
       </div>
-      <div class="table-wrap">
-        <table>
-          <tbody>
-            <tr><td class="muted" style="width:130px">UUID</td><td class="mono"><%= vm.uuid %></td></tr>
-            <tr>
-              <td class="muted">Owner</td>
-              <td>
-                <div class="flex-between">
-                  <div>
-                    <span class="font-bold"><%= vm.owner_name %></span> &lt;<%= vm.owner_email %>&gt;
-                  </div>
-                  <% if (typeof allUsers !== 'undefined' && allUsers.length > 1) { %>
-                    <button type="button" class="btn btn-sm" onclick="openTransferModal()" style="font-size:11.5px;padding:3px 8px">
-                      Transfer Owner
-                    </button>
+
+      <div class="stat">
+        <div class="stat-icon" style="background:rgba(56,189,248,0.15);color:#38bdf8">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
+        </div>
+        <div>
+          <div class="stat-value"><%= vmObj.memory %> MB</div>
+          <div class="stat-label">Allocated RAM</div>
+        </div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-icon" style="background:rgba(245,158,11,0.15);color:#fbbf24">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
+        </div>
+        <div>
+          <div class="stat-value"><%= vmObj.disk_size || '20G' %></div>
+          <div class="stat-label">Disk Storage</div>
+        </div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#34d399">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l2 2M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/></svg>
+        </div>
+        <div>
+          <div class="stat-value"><%= vmObj.status === 'running' ? (Math.floor(uptimeSec/60) + 'm') : '—' %></div>
+          <div class="stat-label">Uptime</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="gap:20px;align-items:start">
+      <!-- Server Configuration & Metadata Card -->
+      <div class="card">
+        <div class="card-title mb-3" style="display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
+          Server Configuration &amp; Metadata
+        </div>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr><td class="muted" style="width:140px">UUID</td><td class="mono font-bold" style="user-select:all"><%= vmObj.uuid %></td></tr>
+              <tr>
+                <td class="muted">Owner</td>
+                <td>
+                  <a href="/admin/users/<%= vmObj.owner_id %>" style="color:var(--text);font-weight:700;text-decoration:none">
+                    <%= vmObj.owner_name %> &lt;<%= vmObj.owner_email %>&gt;
+                  </a>
+                </td>
+              </tr>
+              <tr><td class="muted">Node</td><td><span class="pill pill-blue"><%= vmObj.node_name || 'Local Cluster / Node 1' %></span></td></tr>
+              <tr><td class="muted">Primary Port</td><td><code class="mono font-bold" style="color:var(--accent)">Port <%= vmObj.ssh_port %></code></td></tr>
+              <tr><td class="muted">Hostname</td><td class="mono"><%= vmObj.hostname || 'localhost' %></td></tr>
+              <tr><td class="muted">Default User</td><td class="mono"><%= vmObj.username || 'ubuntu' %></td></tr>
+              <tr><td class="muted">Operating System</td><td><%= vmObj.os_type || 'Ubuntu 24.04' %></td></tr>
+              <tr><td class="muted">SSH Command</td><td><code style="font-size:11px;user-select:all">ssh -p <%= vmObj.ssh_port %> <%= vmObj.username || 'ubuntu' %>@localhost</code></td></tr>
+              <tr><td class="muted">Provisioned</td><td class="muted"><%= new Date(vmObj.created_at || Date.now()).toLocaleString() %></td></tr>
+              <% if (vmObj.exp_date) { %>
+                <tr><td class="muted">Expiry Date</td><td><span class="pill pill-yellow font-bold"><%= new Date(vmObj.exp_date).toLocaleString() %></span></td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Collaborators & Subusers Card -->
+      <div class="card">
+        <div class="flex-between mb-3">
+          <div class="card-title" style="margin:0;display:flex;align-items:center;gap:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Subusers (<%= subList.length %>)
+          </div>
+          <a class="btn btn-sm" href="/admin/users" style="font-size:11px">Manage Users</a>
+        </div>
+        <% if (subList.length === 0) { %>
+          <div class="muted text-sm" style="padding:16px 0">No subusers assigned to this server.</div>
+        <% } else { %>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>User</th><th>Role / Permissions</th></tr>
+              </thead>
+              <tbody>
+                <% for (const s of subList) { %>
+                  <tr>
+                    <td class="font-bold"><%= s.username || s.user_id %></td>
+                    <td><span class="pill pill-gray"><%= (s.permissions || []).join(', ') || 'Standard' %></span></td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+
+        <div class="mt-4">
+          <div class="card-title mb-2" style="font-size:14px">Backups (<%= backupList.length %>)</div>
+          <% if (backupList.length === 0) { %>
+            <div class="muted text-sm">No backups found.</div>
+          <% } else { %>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Name</th><th>Size</th><th>Created</th></tr></thead>
+                <tbody>
+                  <% for (const b of backupList) { %>
+                    <tr>
+                      <td class="font-bold"><%= b.name %></td>
+                      <td class="muted"><%= b.size || '-' %></td>
+                      <td class="muted text-sm"><%= new Date(b.created_at).toLocaleDateString() %></td>
+                    </tr>
                   <% } %>
-                </div>
-              </td>
-            </tr>
-            <tr><td class="muted">OS / Codename</td><td><span class="pill pill-blue font-bold"><%= vm.os_type %> <%= vm.codename %></span></td></tr>
-            <tr><td class="muted">SSH Command</td><td class="mono">ssh -p <%= vm.ssh_port %> <%= vm.username %>@localhost</td></tr>
-            <tr><td class="muted">Terminal</td><td><a href="/servers/<%= vm.id %>/console" class="btn btn-sm">Launch Web Terminal</a></td></tr>
-            <tr><td class="muted">SSH Password</td><td class="mono"><%= vm.password %></td></tr>
-            <tr><td class="muted">Disk Image File</td><td class="mono truncate text-sm" style="max-width:240px"><%= vm.img_file %></td></tr>
-            <tr><td class="muted">Port Forwards</td><td class="mono"><% if (vm.port_forwards && vm.port_forwards.length) { %><% for (const f of vm.port_forwards) { %><span class="pill pill-gray" style="margin-right:4px"><%= f.host %>:<%= f.guest %></span><% } %><% } else { %>None<% } %></td></tr>
-            <tr><td class="muted">Created At</td><td class="muted"><%= new Date(vm.created_at).toLocaleString() %></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Related Components -->
-    <div style="display:flex;flex-direction:column;gap:18px">
-      <div class="card">
-        <div class="flex-between mb-2">
-          <div class="card-title" style="margin:0">Backups (<%= backups.length %>)</div>
-          <a href="/servers/<%= vm.id %>/backups" class="btn btn-sm">Manage</a>
-        </div>
-        <% if (backups.length === 0) { %><div class="muted text-sm">No backups created yet</div><% } else { %>
-          <% for (const b of backups.slice(0, 4)) { %>
-            <div class="flex-between" style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
-              <span class="mono truncate" style="max-width:180px"><%= b.name %></span>
-              <span class="muted text-sm"><%= Math.round((b.size || 0)/1024/1024) %> MB</span>
+                </tbody>
+              </table>
             </div>
           <% } %>
-        <% } %>
-      </div>
-
-      <div class="card">
-        <div class="flex-between mb-2">
-          <div class="card-title" style="margin:0">Subusers (<%= subs.length %>)</div>
-          <a href="/servers/<%= vm.id %>/subusers" class="btn btn-sm">Manage</a>
         </div>
-        <% if (subs.length === 0) { %><div class="muted text-sm">No subusers assigned to this server</div><% } else { %>
-          <% for (const s of subs) { %>
-            <div class="flex-between" style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
-              <span style="font-weight:600"><%= s.username %></span>
-            </div>
-          <% } %>
-        <% } %>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Transfer Ownership Modal -->
-<% if (typeof allUsers !== 'undefined' && allUsers.length > 1) { %>
-<div id="transferModal" style="display:none">
-  <div style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:grid;place-items:center;padding:20px;backdrop-filter:blur(8px)">
-    <div class="card" style="width:min(460px,94vw);box-shadow:0 24px 60px rgba(0,0,0,0.6)">
-      <div class="flex-between mb-3">
-        <h3 style="font-size:18px;font-weight:700;margin:0">Transfer Server Ownership</h3>
-        <button type="button" class="btn btn-sm" onclick="closeTransferModal()">✕</button>
+  <!-- ==================== TAB 2: DETAILS (matching details.blade.php) ==================== -->
+  <div id="tabContent-details" class="server-tab-content" style="display:none">
+    <div class="card" style="max-width:850px">
+      <div class="card-title mb-3" style="display:flex;align-items:center;gap:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Base Information
       </div>
-      <p class="muted text-sm mb-3">Transfer ownership of <strong><%= vm.name %></strong> to another registered user account.</p>
-      
-      <div class="form-group mb-4">
-        <label>Select New Owner</label>
-        <select id="transferOwnerSelect" style="width:100%;padding:10px;border-radius:8px">
-          <% for (const u of allUsers) { %>
-            <option value="<%= u.id %>" <%= u.id === vm.owner_id ? 'selected disabled' : '' %>>
-              <%= u.username %> (<%= u.email %>) <%= u.id === vm.owner_id ? '— Current Owner' : '' %>
+
+      <div class="form-group mb-3">
+        <label>Server Name <span style="color:#ef4444">*</span></label>
+        <input type="text" id="dName" class="form-control" value="<%= vmObj.name %>" required/>
+        <small class="muted">Character limits: <code>a-zA-Z0-9_-</code> and <code>[Space]</code>.</small>
+      </div>
+
+      <div class="form-group mb-3">
+        <label>External Identifier</label>
+        <input type="text" id="dExternalId" class="form-control" value="<%= vmObj.external_id || '' %>" placeholder="e.g. BILL-90210"/>
+        <small class="muted">Leave empty to not assign an external identifier. Must be unique.</small>
+      </div>
+
+      <div class="form-group mb-3">
+        <label>Server Owner <span style="color:#ef4444">*</span></label>
+        <select id="dOwnerId" class="form-control" style="width:100%;padding:10px;border-radius:8px">
+          <% for (const u of userList) { %>
+            <option value="<%= u.id %>" <%= (Number(u.id) === Number(vmObj.owner_id)) ? 'selected' : '' %>>
+              <%= u.username %> (<%= u.email %>)
             </option>
           <% } %>
         </select>
+        <small class="muted">Changing this field will immediately transfer ownership of this virtual machine to the selected user.</small>
       </div>
 
-      <div class="flex right" style="gap:8px">
-        <button type="button" class="btn" onclick="closeTransferModal()">Cancel</button>
-        <button type="button" class="btn btn-primary" onclick="submitTransfer()">Confirm Transfer</button>
+      <div class="form-group mb-3">
+        <label>Server Description</label>
+        <textarea id="dDescription" class="form-control" rows="3" placeholder="Brief description of this server..."><%= vmObj.description || '' %></textarea>
+      </div>
+
+      <div class="form-group mb-3">
+        <label>Server Expiry Date</label>
+        <%
+          let expVal = '';
+          if (vmObj.exp_date) {
+            try {
+              const dt = new Date(vmObj.exp_date);
+              const pad = n => String(n).padStart(2, '0');
+              expVal = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+            } catch (_) {}
+          }
+        %>
+        <input type="datetime-local" id="dExpDate" class="form-control" value="<%= expVal %>"/>
+        <small class="muted">Set the expiry date for this server. Leave blank for no expiry.</small>
+      </div>
+
+      <div class="mt-4">
+        <button type="button" class="btn btn-primary" onclick="saveDetails()">
+          Update Details
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 3: BUILD CONFIGURATION (matching build.blade.php) ==================== -->
+  <div id="tabContent-build" class="server-tab-content" style="display:none">
+    <div class="card" style="max-width:850px">
+      <div class="card-title mb-3" style="display:flex;align-items:center;gap:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Resource Management
+      </div>
+
+      <div class="grid grid-2" style="gap:16px">
+        <div class="form-group mb-3">
+          <label>CPU Cores</label>
+          <input type="number" id="bCpu" class="form-control" value="<%= vmObj.cpus || 2 %>" min="1" max="128"/>
+          <small class="muted">Number of virtual CPU cores allocated to this machine.</small>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>CPU Pinning (Threads)</label>
+          <input type="text" id="bThreads" class="form-control" value="<%= vmObj.threads || '' %>" placeholder="e.g. 0,1,2,3 or leave empty"/>
+          <small class="muted">Specific CPU cores/threads. Leave blank to allow all host cores.</small>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Allocated Memory (MiB)</label>
+          <input type="number" id="bMemory" class="form-control" value="<%= vmObj.memory || 2048 %>" min="256" step="512"/>
+          <small class="muted">Maximum RAM allocated to this container/virtual machine.</small>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Allocated Swap (MiB)</label>
+          <input type="number" id="bSwap" class="form-control" value="<%= vmObj.swap || 0 %>" min="0" step="512"/>
+          <small class="muted">Setting to 0 will disable swap on this machine.</small>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Disk Space Limit</label>
+          <input type="text" id="bDisk" class="form-control" value="<%= vmObj.disk_size || '20G' %>" placeholder="e.g. 20G or 50G"/>
+          <small class="muted">Storage disk size (e.g. 20G, 50G, 100G).</small>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Primary SSH Port</label>
+          <input type="number" id="bPort" class="form-control" value="<%= vmObj.ssh_port %>" readonly style="opacity:0.8"/>
+          <small class="muted">Assigned SSH networking port forwarding.</small>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <button type="button" class="btn btn-primary" onclick="saveBuild()">
+          Update Build Configuration
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 4: MANAGE (matching manage.blade.php) ==================== -->
+  <div id="tabContent-manage" class="server-tab-content" style="display:none">
+    <div class="grid grid-3" style="gap:20px;align-items:start">
+      <!-- 1. Reinstall Server -->
+      <div class="card" style="border:1px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.03)">
+        <div class="card-title mb-2" style="color:#ef4444;font-size:16px">Reinstall Server</div>
+        <p class="muted text-sm mb-4">
+          This will reinstall the virtual machine with clean base cloud-init seed files.
+          <strong style="color:#ef4444">Danger!</strong> This can overwrite existing system files.
+        </p>
+        <button type="button" class="btn btn-danger" onclick="reinstallServer()" style="width:100%">
+          Reinstall Server
+        </button>
+      </div>
+
+      <!-- 2. Install / Power Status Toggle -->
+      <div class="card">
+        <div class="card-title mb-2" style="font-size:16px">Power &amp; Execution Toggle</div>
+        <p class="muted text-sm mb-4">
+          Toggle the running execution status between online and stopped state immediately.
+        </p>
+        <button type="button" class="btn btn-primary" onclick="toggleServerPower()" style="width:100%">
+          Toggle Status (<%= vmObj.status === 'running' ? 'Turn Off' : 'Turn On' %>)
+        </button>
+      </div>
+
+      <!-- 3. Suspend / Unsuspend Server -->
+      <div class="card" style="border:1px solid <%= vmObj.suspended ? 'rgba(16,185,129,0.35)' : 'rgba(245,158,11,0.35)' %>">
+        <div class="card-title mb-2" style="font-size:16px;color:<%= vmObj.suspended ? '#10b981' : '#f59e0b' %>">
+          <%= vmObj.suspended ? 'Unsuspend Server' : 'Suspend Server' %>
+        </div>
+        <p class="muted text-sm mb-4">
+          <%= vmObj.suspended 
+              ? 'This will unsuspend the server and restore full client panel, API, and SSH access.' 
+              : 'This will suspend the server, stop any active processes, and block user access.' %>
+        </p>
+        <button type="button" class="btn <%= vmObj.suspended ? 'btn-green' : '' %>" 
+                style="<%= vmObj.suspended ? '' : 'background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#fbbf24;' %>width:100%"
+                onclick="toggleSuspension('<%= vmObj.suspended ? 0 : 1 %>')">
+          <%= vmObj.suspended ? 'Unsuspend Server' : 'Suspend Server' %>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 5: DELETE (matching delete.blade.php) ==================== -->
+  <div id="tabContent-delete" class="server-tab-content" style="display:none">
+    <div class="grid grid-2" style="gap:20px;align-items:start">
+      <!-- 1. Safely Delete Server -->
+      <div class="card">
+        <div class="card-title mb-2" style="font-size:16px">Safely Delete Server</div>
+        <p class="muted text-sm mb-2">
+          This action will gracefully shut down the instance and clean up assigned disk images, sockets, and ports.
+        </p>
+        <p style="color:#ef4444;font-size:12px;font-weight:600;margin-bottom:16px">
+          Deleting a server is an irreversible action. All data, files, and configurations will be removed.
+        </p>
+        <button type="button" class="btn btn-danger" onclick="deleteServer(false)">
+          Safely Delete This Server
+        </button>
+      </div>
+
+      <!-- 2. Force Delete Server -->
+      <div class="card" style="border:1px solid rgba(239,68,68,0.5);background:rgba(239,68,68,0.05)">
+        <div class="card-title mb-2" style="font-size:16px;color:#ef4444">Force Delete Server</div>
+        <p class="muted text-sm mb-2">
+          This action will forcibly terminate any running process, remove the record immediately, and bypass daemon checks.
+        </p>
+        <p style="color:#ef4444;font-size:12px;font-weight:600;margin-bottom:16px">
+          Use only if standard deletion fails or daemon reports an unresponsive state.
+        </p>
+        <button type="button" class="btn btn-danger" onclick="deleteServer(true)" style="background:#dc2626">
+          Forcibly Delete This Server
+        </button>
       </div>
     </div>
   </div>
 </div>
-<% } %>
 
 <%- include('../partials/music') %>
 <%- include('../partials/foot') %>
 
 <script>
-function openTransferModal() {
-  const m = document.getElementById('transferModal');
-  if (m) m.style.display = 'block';
+// Tab Switching Controller (matches Pterodactyl sub-navigation)
+function showServerTab(tabId) {
+  document.querySelectorAll('.server-tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+  const content = document.getElementById('tabContent-' + tabId);
+  const btn = document.getElementById('tabNav-' + tabId);
+
+  if (content) content.style.display = 'block';
+  if (btn) btn.classList.add('active');
+  location.hash = '#' + tabId;
 }
 
-function closeTransferModal() {
-  const m = document.getElementById('transferModal');
-  if (m) m.style.display = 'none';
-}
+// Restore tab from URL hash on load
+window.addEventListener('DOMContentLoaded', () => {
+  const hash = (location.hash || '').replace('#', '');
+  if (['about', 'details', 'build', 'manage', 'delete'].includes(hash)) {
+    showServerTab(hash);
+  }
+});
 
-async function submitTransfer() {
-  const sel = document.getElementById('transferOwnerSelect');
-  if (!sel || !sel.value) return;
+// Power actions
+async function serverAction(action) {
   try {
-    const res = await fetch('/admin/servers/<%= vm.id %>/transfer', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + vpToken() },
-      body: JSON.stringify({ owner_id: sel.value })
-    });
-    const d = await res.json();
-    if (!res.ok || !d.ok) throw new Error(d.error || 'Failed to transfer VM');
-    VP.toast('Ownership transferred successfully', 'success');
-    setTimeout(() => location.reload(), 700);
+    await VP.api('/admin/servers/<%= vmObj.id %>/action', { method: 'POST', body: { action } });
+    VP.toast(`Server action '${action}' dispatched`, 'success');
+    setTimeout(() => location.reload(), 800);
   } catch (e) {
     VP.toast(e.message, 'error');
   }
 }
 
-async function action(a) {
+// Tab 2: Update Details
+async function saveDetails() {
+  const body = {
+    name: document.getElementById('dName').value.trim(),
+    external_id: document.getElementById('dExternalId').value.trim(),
+    owner_id: parseInt(document.getElementById('dOwnerId').value, 10),
+    description: document.getElementById('dDescription').value.trim(),
+    exp_date: document.getElementById('dExpDate').value || null,
+  };
   try {
-    VP.toast(`Executing ${a}...`, 'info');
-    await VP.api('/admin/servers/<%= vm.id %>/action', { method: 'POST', body: { action: a } });
-    VP.toast('Command sent', 'success');
-    setTimeout(() => location.reload(), 700);
+    await VP.api('/admin/servers/<%= vmObj.id %>/details', { method: 'POST', body });
+    VP.toast('Server details updated successfully', 'success');
+    setTimeout(() => location.reload(), 600);
   } catch (e) {
     VP.toast(e.message, 'error');
   }
 }
 
-async function del() {
-  const ok = await VP.confirmDialog('Permanently delete <%= vm.name %> and ALL its disks/backups? This cannot be undone!', { title: 'Delete server?' });
+// Tab 3: Update Build Configuration
+async function saveBuild() {
+  const body = {
+    cpu: parseInt(document.getElementById('bCpu').value, 10),
+    threads: document.getElementById('bThreads').value.trim(),
+    memory: parseInt(document.getElementById('bMemory').value, 10),
+    swap: parseInt(document.getElementById('bSwap').value, 10),
+    disk: document.getElementById('bDisk').value.trim(),
+  };
+  try {
+    await VP.api('/admin/servers/<%= vmObj.id %>/build', { method: 'POST', body });
+    VP.toast('Build configuration updated successfully', 'success');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+// Tab 4: Reinstall
+async function reinstallServer() {
+  const ok = await VP.confirmDialog('Reinstall this server? Data could be overwritten.', { title: 'Reinstall Server' });
   if (!ok) return;
   try {
-    await VP.api('/admin/servers/<%= vm.id %>/action', { method: 'POST', body: { action: 'delete' } });
-    VP.toast('Server deleted', 'success');
-    setTimeout(() => location.href = '/admin/servers', 800);
+    await VP.api('/admin/servers/<%= vmObj.id %>/manage/reinstall', { method: 'POST' });
+    VP.toast('Server reinstalled successfully', 'success');
+    setTimeout(() => location.reload(), 800);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+// Tab 4: Toggle Status
+async function toggleServerPower() {
+  try {
+    const res = await VP.api('/admin/servers/<%= vmObj.id %>/manage/toggle', { method: 'POST' });
+    VP.toast(`Server is now ${res.status}`, 'success');
+    setTimeout(() => location.reload(), 800);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+// Tab 4: Suspend / Unsuspend
+async function toggleSuspension(suspend) {
+  const doSuspend = (String(suspend) === '1' || suspend === true || suspend === 'true');
+  try {
+    await VP.api('/admin/servers/<%= vmObj.id %>/manage/suspension', {
+      method: 'POST',
+      body: { action: doSuspend ? 'suspend' : 'unsuspend' }
+    });
+    VP.toast(doSuspend ? 'Server suspended' : 'Server unsuspended', 'success');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+// Tab 5: Delete
+async function deleteServer(force) {
+  const ok = await VP.confirmDialog(
+    `Are you sure you want to ${force ? 'FORCIBLY' : 'safely'} delete "<%= vmObj.name %>"? This cannot be undone.`,
+    { title: force ? 'Force Delete Server?' : 'Delete Server?' }
+  );
+  if (!ok) return;
+  try {
+    await VP.api('/admin/servers/<%= vmObj.id %>/delete', { method: 'POST', body: { force_delete: force } });
+    VP.toast('Server deleted successfully', 'success');
+    setTimeout(() => location.href = '/admin/servers', 600);
   } catch (e) {
     VP.toast(e.message, 'error');
   }

@@ -1,14 +1,16 @@
 <%
-const panelName = settings['panel.name'] || 'vpanel';
+const panelName = settings['panel.name'] || 'vPanel Pro';
 const favName = settings['panel.favicon_name'] || panelName;
 let favicon = '';
 if (settings['panel.favicon_mode'] === 'upload' && settings['panel.favicon_file']) favicon = settings['panel.favicon_file'];
 else if (settings['panel.favicon_mode'] === 'url' && settings['panel.favicon_url']) favicon = settings['panel.favicon_url'];
 if (!favicon) {
-  favicon = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="%236366f1"/><text x="32" y="44" font-size="34" font-family="Arial" font-weight="bold" fill="#fff" text-anchor="middle">' + (favName[0] || 'V').toUpperCase() + '</text></svg>');
+  favicon = "/arix/Arix.png";
 }
-const accent = settings['panel.accent'] || '#6366f1';
-const theme = settings['panel.theme'] || 'dark';
+const arixPrimary = settings['arix.primary'] || settings['panel.accent'] || '#4A35CF';
+const radiusBox = settings['arix.radius_box'] || '10px';
+const radiusInput = settings['arix.radius_input'] || '8px';
+const theme = settings['arix.mode'] || settings['panel.theme'] || 'dark';
 const navbarTransparent = settings['panel.navbar_transparent'] === '1' || settings['panel.navbar_transparent'] === true;
 const navbarBlur = settings['panel.navbar_blur'] === '1' || settings['panel.navbar_blur'] === true;
 const navbarStyle = settings['panel.navbar_style'] || 'glass';
@@ -21,72 +23,42 @@ const navbarStyle = settings['panel.navbar_style'] || 'glass';
 <title><%= panelName %> - <%= title %></title>
 <link rel="icon" href="<%= favicon %>"/>
 <link rel="stylesheet" href="/css/panel.css"/>
+<script src="/vendor/lucide.min.js"></script>
 <% if (typeof styles !== 'undefined') { for (const s of styles) { %><link rel="stylesheet" href="<%= s %>"/><% } } %>
 <% if (typeof scripts !== 'undefined') { for (const s of scripts) { %><script src="<%= s %>"></script><% } } %>
 <style>
 :root, html, html[data-theme="dark"], body {
-  --accent: <%= accent || '#38bdf8' %>;
-  --accent-hover: #0284c7;
-  --accent-light: #7dd3fc;
-  --accent-glow: rgba(56, 189, 248, 0.35);
-  --accent-2: #818cf8;
-  --accent-2-glow: rgba(129, 140, 248, 0.35);
-  --bg: #000000;
-  --bg-main: #000000;
-  --bg-card: #09090b;
-  --bg-card-hover: #121215;
-  --bg-input: #0e0e11;
-  --border: #27272a;
-  --border-hover: rgba(255, 255, 255, 0.18);
-  --border-focus: rgba(56, 189, 248, 0.65);
-  --text: #f8fafc;
-  --text-muted: #a1a1aa;
-  --text-dim: #71717a;
-  color-scheme: dark;
-}
-html[data-theme="default"] {
-  --accent: #6366f1;
-  --accent-glow: rgba(99, 102, 241, 0.35);
-  --bg: #0b1020;
-  --bg-main: #0b1020;
-  --bg-card: rgba(15, 23, 42, 0.65);
-  --border: rgba(255, 255, 255, 0.08);
-}
-html[data-theme="neon"] {
-  --accent: #10b981;
-  --accent-glow: rgba(16, 185, 129, 0.45);
-  --bg: #030712;
-  --bg-main: #030712;
-  --bg-card: rgba(17, 24, 39, 0.85);
-  --border: rgba(16, 185, 129, 0.25);
-}
-html[data-theme="nord"] {
-  --accent: #88c0d0;
-  --accent-glow: rgba(136, 192, 208, 0.35);
-  --bg: #2e3440;
-  --bg-main: #2e3440;
-  --bg-card: rgba(46, 52, 64, 0.85);
-  --border: #4c566a;
-}
-html[data-theme="dracula"] {
-  --accent: #bd93f9;
-  --accent-glow: rgba(189, 147, 249, 0.4);
-  --bg: #1e1f29;
-  --bg-main: #1e1f29;
-  --bg-card: rgba(40, 42, 54, 0.85);
-  --border: #44475a;
+  --primary: <%= arixPrimary %>;
+  --accent: <%= arixPrimary %>;
+  --radius-box: <%= radiusBox %>;
+  --radius-input: <%= radiusInput %>;
+  --radius: <%= radiusBox %>;
 }
 </style>
 <script>
 window.VP_CONFIG = { apiPort: 3002 };
 window.VP_TOKEN = "<%= (typeof token !== 'undefined' && token) ? token : '' %>";
-function vpApiBase() {
-  return '';
-}
+function vpApiBase() { return ''; }
 function vpToken() {
   const m = document.cookie.match(/(?:^|;\s*)token=([^;]+)/);
   return (m ? decodeURIComponent(m[1]) : '') || (window.VP_TOKEN || '');
 }
+
+// Synchronize theme with localStorage
+(function() {
+  try {
+    const saved = localStorage.getItem('arix_theme') || localStorage.getItem('theme');
+    if (saved && (saved === 'dark' || saved === 'light')) {
+      document.documentElement.setAttribute('data-theme', saved);
+    }
+  } catch(e) {}
+})();
+
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+});
 </script>
 </head>
 <body class="<%= navbarStyle === 'glass' ? '' : 'nav-' + navbarStyle %> <%= navbarTransparent ? 'nav-transparent' : '' %> <%= navbarBlur ? 'nav-blur' : '' %> <%= (settings['panel.bg_mode'] && settings['panel.bg_mode'] !== 'color') ? 'bg-visible' : '' %>">

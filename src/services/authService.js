@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const speakeasy = require('speakeasy');
@@ -7,19 +8,61 @@ const { collections, getNextId, settings } = require('../lib/db');
 const logger = require('../lib/logger');
 const { logActivity, logLogin } = require('./activityService');
 
+function getGravatar(email) {
+  if (!email) return '';
+  const hash = crypto.createHash('md5').update(String(email).trim().toLowerCase()).digest('hex');
+  return `https://www.gravatar.com/avatar/${hash}?s=100&d=mp`;
+}
+
+function parseUserAgent(ua = '') {
+  ua = String(ua || '');
+  let device_type = 'Desktop';
+  if (/mobile/i.test(ua)) device_type = 'Mobile';
+  else if (/tablet|ipad/i.test(ua)) device_type = 'Tablet';
+
+  let platform = 'Unknown';
+  if (/windows/i.test(ua)) platform = 'Windows';
+  else if (/macintosh|mac os x/i.test(ua)) platform = 'macOS';
+  else if (/android/i.test(ua)) platform = 'Android';
+  else if (/iphone|ipad|ipod/i.test(ua)) platform = 'iOS';
+  else if (/cros/i.test(ua)) platform = 'ChromeOS';
+  else if (/linux/i.test(ua)) platform = 'Linux';
+
+  let browser = 'Unknown';
+  if (/edg/i.test(ua)) browser = 'Edge';
+  else if (/opr|opera/i.test(ua)) browser = 'Opera';
+  else if (/chrome|crios/i.test(ua)) browser = 'Chrome';
+  else if (/firefox|fxios/i.test(ua)) browser = 'Firefox';
+  else if (/safari/i.test(ua)) browser = 'Safari';
+
+  return { device_type, platform, browser };
+}
+
 function publicUser(u) {
   if (!u) return null;
+  const gravatar = getGravatar(u.email);
   return {
     id: u.id,
     username: u.username,
     email: u.email,
     name: u.name,
+    name_first: u.name_first || '',
+    name_last: u.name_last || '',
     role: u.role,
     root_admin: !!u.root_admin,
-    language: u.language,
-    avatar: u.avatar,
-    verified: !!u.verified,
+    language: u.language || 'en',
+    avatar: u.avatar || gravatar,
+    gravatar,
+    country: u.country || '',
+    address: u.address || '',
+    zip_code: u.zip_code || '',
+    credit: typeof u.credit === 'number' ? u.credit : (parseFloat(u.credit) || 0),
+    is_banned: !!u.is_banned,
+    ban_reason: u.ban_reason || '',
     suspended: !!u.suspended,
+    suspended_until: u.suspended_until || null,
+    suspension_reason: u.suspension_reason || '',
+    verified: !!u.verified,
     tfa_enabled: !!u.tfa_enabled,
     last_login_at: u.last_login_at,
     last_login_ip: u.last_login_ip,
@@ -56,7 +99,22 @@ async function findById(id) {
   return collections.users.findOne({ id: Number(id) });
 }
 
-async function createUser({ username, email, password, name, role = 'user', verified = true }) {
+async function createUser({
+  username,
+  email,
+  password,
+  name,
+  name_first = '',
+  name_last = '',
+  role = 'user',
+  root_admin = null,
+  language = 'en',
+  country = '',
+  address = '',
+  zip_code = '',
+  credit = 0,
+  verified = true,
+}) {
   const usernameOk = /^[a-zA-Z0-9_]{3,32}$/.test(username);
   if (!usernameOk) throw new Error('Username must be 3-32 chars (letters, numbers, underscore)');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error('Invalid email address');
@@ -70,19 +128,34 @@ async function createUser({ username, email, password, name, role = 'user', veri
   const hash = bcrypt.hashSync(password, 10);
   const now = new Date().toISOString();
   const id = await getNextId('users');
+  const fn = String(name_first || '').trim();
+  const ln = String(name_last || '').trim();
+  const displayName = name || (fn || ln ? `${fn} ${ln}`.trim() : username);
+  const isAdmin = role === 'admin' || root_admin === 1 || root_admin === true || root_admin === '1';
+
   const doc = {
     id,
     username,
     email: email.toLowerCase(),
     password: hash,
-    name: name || username,
-    role,
-    root_admin: role === 'admin' ? 1 : 0,
-    language: 'en',
+    name: displayName,
+    name_first: fn,
+    name_last: ln,
+    role: isAdmin ? 'admin' : 'user',
+    root_admin: isAdmin ? 1 : 0,
+    language: language || 'en',
     avatar: null,
+    country: String(country || '').trim(),
+    address: String(address || '').trim(),
+    zip_code: String(zip_code || '').trim(),
+    credit: parseFloat(credit) || 0,
+    is_banned: 0,
+    ban_reason: '',
+    suspended: 0,
+    suspended_until: null,
+    suspension_reason: '',
     verified: verified ? 1 : 0,
     verify_token: null,
-    suspended: 0,
     tfa_enabled: 0,
     tfa_secret: null,
     last_login_at: null,
@@ -97,21 +170,55 @@ async function createUser({ username, email, password, name, role = 'user', veri
 async function updateUser(id, data) {
   const user = await findById(id);
   if (!user) throw new Error('User not found');
-  const allowed = ['name', 'email', 'username', 'language', 'avatar', 'role'];
+  const allowed = [
+    'name', 'name_first', 'name_last', 'email', 'username',
+    'language', 'avatar', 'role', 'root_admin',
+    'country', 'address', 'zip_code', 'credit',
+    'is_banned', 'ban_reason', 'suspended', 'suspended_until', 'suspension_reason'
+  ];
   const $set = {};
   for (const f of allowed) {
     if (data[f] !== undefined) $set[f] = data[f];
   }
+  if (data.credit !== undefined) {
+    $set.credit = Math.max(0, parseFloat(data.credit) || 0);
+  }
   if (data.password) {
-    if (data.password.length < 6) throw new Error('Password too short');
+    if (data.password.length < 6) throw new Error('Password too short (minimum 6 characters)');
     $set.password = bcrypt.hashSync(data.password, 10);
   }
   if (data.suspended !== undefined) $set.suspended = data.suspended ? 1 : 0;
+  if (data.is_banned !== undefined) {
+    $set.is_banned = data.is_banned ? 1 : 0;
+    if (data.is_banned) {
+      $set.suspended = 1;
+    }
+  }
+  if (data.suspended_until !== undefined) {
+    $set.suspended_until = data.suspended_until ? new Date(data.suspended_until).toISOString() : null;
+    if ($set.suspended_until && new Date($set.suspended_until) > new Date()) {
+      $set.suspended = 1;
+    }
+  }
   if (data.verified !== undefined) $set.verified = data.verified ? 1 : 0;
-  if (data.root_admin !== undefined) $set.root_admin = data.root_admin ? 1 : 0;
+  if (data.root_admin !== undefined) {
+    $set.root_admin = (data.root_admin === 1 || data.root_admin === true || data.root_admin === '1') ? 1 : 0;
+    if ($set.root_admin) $set.role = 'admin';
+  }
+  if (data.role !== undefined) {
+    if (data.role === 'admin') $set.root_admin = 1;
+    else if (data.role === 'user' && data.root_admin === undefined) $set.root_admin = 0;
+  }
   if (data.tfa_disabled) {
     $set.tfa_enabled = 0;
     $set.tfa_secret = null;
+  }
+  if ($set.name_first !== undefined || $set.name_last !== undefined) {
+    const fn = $set.name_first !== undefined ? $set.name_first : (user.name_first || '');
+    const ln = $set.name_last !== undefined ? $set.name_last : (user.name_last || '');
+    if (!$set.name && (fn || ln)) {
+      $set.name = `${fn} ${ln}`.trim();
+    }
   }
   if (Object.keys($set).length) {
     $set.updated_at = new Date().toISOString();
@@ -132,6 +239,9 @@ async function updateUser(id, data) {
 
 async function deleteUser(id) {
   await collections.users.deleteOne({ id: Number(id) });
+  if (collections.user_sessions) {
+    await collections.user_sessions.deleteMany({ user_id: Number(id) }).catch(() => {});
+  }
   return true;
 }
 
@@ -141,31 +251,92 @@ async function countAdmins() {
   });
 }
 
-async function attemptLogin(username, password, ip) {
+async function attemptLogin(username, password, ip, userAgent = '') {
   const user = await findByUsername(username);
   if (!user) {
-    await logLogin({ ip, username, status: 'failed_user' });
+    await logLogin({ ip, username, status: 'failed_user', user_agent: userAgent });
     return { ok: false, error: 'Invalid username or password' };
   }
   if (!bcrypt.compareSync(password, user.password)) {
-    await logLogin({ user_id: user.id, ip, username, status: 'failed_password' });
-    await logActivity({ user_id: user.id, event: 'auth:login_failed', ip });
+    await logLogin({ user_id: user.id, ip, username, status: 'failed_password', user_agent: userAgent });
+    await logActivity({ user_id: user.id, event: 'auth:login_failed', ip, user_agent: userAgent });
     return { ok: false, error: 'Invalid username or password' };
   }
+  if (user.is_banned) {
+    const reasonMsg = user.ban_reason ? `: ${user.ban_reason}` : '';
+    await logLogin({ user_id: user.id, ip, username, status: 'banned', user_agent: userAgent });
+    return { ok: false, error: `This account is banned${reasonMsg}` };
+  }
   if (user.suspended) {
-    await logLogin({ user_id: user.id, ip, username, status: 'suspended' });
-    return { ok: false, error: 'This account is suspended' };
+    if (user.suspended_until && new Date(user.suspended_until) <= new Date()) {
+      // Auto-unsuspend expired suspension
+      await collections.users.updateOne({ id: user.id }, { $set: { suspended: 0, suspended_until: null, suspension_reason: null } });
+      user.suspended = 0;
+    } else {
+      const untilMsg = user.suspended_until ? ` until ${new Date(user.suspended_until).toLocaleString()}` : '';
+      const reasonMsg = user.suspension_reason ? ` (Reason: ${user.suspension_reason})` : '';
+      await logLogin({ user_id: user.id, ip, username, status: 'suspended', user_agent: userAgent });
+      return { ok: false, error: `This account is suspended${untilMsg}${reasonMsg}` };
+    }
   }
   return { ok: true, user, tfaRequired: !!user.tfa_enabled };
 }
 
-async function finishLogin(user, ip) {
+async function finishLogin(user, ip, userAgent = '') {
   const now = new Date().toISOString();
   await collections.users.updateOne({ id: user.id }, { $set: { last_login_at: now, last_login_ip: ip } });
-  await logLogin({ user_id: user.id, ip, username: user.username, status: 'success' });
-  await logActivity({ user_id: user.id, event: 'auth:login', ip });
+  await logLogin({ user_id: user.id, ip, username: user.username, status: 'success', user_agent: userAgent });
+  await logActivity({ user_id: user.id, event: 'auth:login', ip, user_agent: userAgent });
   const token = signToken(user);
-  return { token, user: publicUser({ ...user, last_login_at: now, last_login_ip: ip }) };
+
+  // Record active session
+  const sessionId = uuidv4();
+  const uaInfo = parseUserAgent(userAgent);
+  if (collections.user_sessions) {
+    try {
+      await collections.user_sessions.insertOne({
+        session_id: sessionId,
+        user_id: Number(user.id),
+        token,
+        ip_address: ip,
+        user_agent: userAgent,
+        device_type: uaInfo.device_type,
+        platform: uaInfo.platform,
+        browser: uaInfo.browser,
+        location: ip === '127.0.0.1' || ip === '::1' || String(ip || '').startsWith('192.168.') || String(ip || '').startsWith('10.') ? 'Local Network' : 'Unknown',
+        is_vpn: false,
+        last_active_at: now,
+        created_at: now,
+      });
+    } catch (_) {}
+  }
+
+  return { token, user: publicUser({ ...user, last_login_at: now, last_login_ip: ip }), session_id: sessionId };
+}
+
+async function listUserSessions(userId) {
+  if (!collections.user_sessions) return [];
+  return collections.user_sessions
+    .find({ user_id: Number(userId) })
+    .sort({ last_active_at: -1 })
+    .toArray();
+}
+
+async function revokeSession(userId, sessionId) {
+  if (!collections.user_sessions) return false;
+  const res = await collections.user_sessions.deleteOne({
+    user_id: Number(userId),
+    session_id: String(sessionId)
+  });
+  return res.deletedCount > 0;
+}
+
+async function revokeAllSessions(userId) {
+  if (!collections.user_sessions) return false;
+  const res = await collections.user_sessions.deleteMany({
+    user_id: Number(userId)
+  });
+  return res.deletedCount > 0;
 }
 
 function genVerifyToken() {
@@ -250,4 +421,5 @@ module.exports = {
   publicUser, signToken, generateToken: signToken, verifyToken, findByUsername, findById, createUser, updateUser, deleteUser,
   countAdmins, attemptLogin, finishLogin, createVerifyToken, verifyEmail, createResetToken,
   resetPassword, setupTfa, confirmTfa, enableTfa, disableTfa,
+  getGravatar, listUserSessions, revokeSession, revokeAllSessions,
 };

@@ -1,32 +1,36 @@
-<%- include('../partials/head', { title: 'Forgot Password' }) %>
+<%- include('../partials/head', { title: 'Account Recovery' }) %>
 <%- include('../partials/ambient') %>
 <div class="auth-wrap">
   <div class="auth-card" style="position:relative;overflow:hidden">
-    <div style="position:absolute;top:-50px;left:50%;transform:translateX(-50%);width:200px;height:120px;background:var(--accent);filter:blur(80px);opacity:0.35;pointer-events:none"></div>
-
-    <div class="auth-logo" style="display:flex;flex-direction:column;align-items:center;margin-bottom:18px">
-      <% const pn = settings['panel.name'] || 'vPanel Pro'; %>
-      <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg, var(--accent), var(--accent-2));display:grid;place-items:center;color:#fff;box-shadow:0 0 20px var(--accent-glow);margin-bottom:12px">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="24" height="24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
-      </div>
-      <span style="font-size:24px;font-weight:800;letter-spacing:-0.5px;background:linear-gradient(90deg,#fff 40%,var(--accent-2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent"><%= pn %></span>
+    <!-- Arix Logo & Header -->
+    <div class="auth-logo" style="display:flex;flex-direction:column;align-items:center;margin-bottom:20px">
+      <% const pn = settings['panel.name'] || 'vPanel Pro'; 
+         let lg = '';
+         if (settings['panel.logo_mode']==='upload' && settings['panel.logo_file']) lg = settings['panel.logo_file'];
+         else if (settings['panel.logo_mode']==='url' && settings['panel.logo_url']) lg = settings['panel.logo_url'];
+         if (!lg) lg = '/arix/Arix.png';
+      %>
+      <img src="<%= lg %>" alt="Arix Logo" style="height:48px;border-radius:10px;margin-bottom:12px;filter:drop-shadow(0 4px 14px rgba(74,53,207,0.4))"/>
+      <span style="font-size:22px;font-weight:700;color:var(--gray-50);letter-spacing:-0.4px"><%= pn %></span>
     </div>
 
-    <h1 class="auth-title" style="font-size:20px;font-weight:700">Account Recovery</h1>
-    <p class="auth-sub" style="margin-bottom:20px">Enter your account email to receive a recovery link</p>
+    <h1 class="auth-title" style="font-size:19px;font-weight:700;color:var(--gray-50)">Account Recovery</h1>
+    <p class="auth-sub" style="margin-bottom:22px">Enter your account email to receive a password reset token</p>
 
     <% if (typeof error !== 'undefined' && error) { %><div class="alert alert-error"><%= error %></div><% } %>
     <% if (typeof success !== 'undefined' && success) { %><div class="alert alert-success"><%= success %></div><% } %>
 
     <form method="post" action="/forgot">
-      <div class="form-group">
+      <div class="form-group mb-3">
         <label for="email">Account Email Address</label>
         <input type="email" id="email" name="email" placeholder="john@example.com" required autofocus/>
       </div>
-      <button type="submit" class="btn btn-primary btn-block mt-2" style="padding:12px;font-weight:700">Send Recovery Link</button>
+      <button type="submit" class="btn btn-primary btn-block mt-3" style="padding:12px;font-weight:700;font-size:14px">
+        Send Recovery Token
+      </button>
     </form>
-    <div class="auth-foot" style="margin-top:20px">
-      Remembered your password? <a href="/login" style="font-weight:600">Back to sign in</a>
+    <div class="auth-foot" style="margin-top:24px;text-align:center">
+      <span class="muted text-sm">Remembered your credentials?</span> <a href="/login" style="font-weight:600;color:var(--primary-light);margin-left:4px">Back to Sign In</a>
     </div>
   </div>
 </div>

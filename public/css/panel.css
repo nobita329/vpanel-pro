@@ -1,55 +1,152 @@
 /* ==========================================================================
-   vPanel Pro — Comprehensive Modern Dark Glassmorphism Design System
+   vPanel Pro — Arix Theme v2.1.3 Native Design System
+   Ported & Fully Integrated Arix Visual Architecture
    ========================================================================== */
 
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
-  --accent: #38bdf8;
-  --accent-hover: #0284c7;
-  --accent-light: #7dd3fc;
-  --accent-glow: rgba(56, 189, 248, 0.35);
-  --accent-2: #818cf8;
-  --accent-2-glow: rgba(129, 140, 248, 0.35);
-  
-  --bg: #000000;
-  --bg-main: #000000;
-  --bg-card: #09090b;
-  --bg-card-hover: #121215;
-  --bg-input: #0e0e11;
-  
-  --text: #f8fafc;
-  --text-muted: #a1a1aa;
-  --text-dim: #71717a;
-  
-  --glass: rgba(255, 255, 255, 0.03);
-  --glass-strong: rgba(18, 18, 22, 0.9);
-  --border: #27272a;
-  --border-focus: rgba(56, 189, 248, 0.65);
-  --border-hover: rgba(255, 255, 255, 0.18);
-  
-  --green: #10b981;
-  --green-glow: rgba(16, 185, 129, 0.25);
-  --red: #f43f5e;
-  --red-glow: rgba(244, 63, 94, 0.25);
-  --yellow: #f59e0b;
-  --yellow-glow: rgba(245, 158, 11, 0.25);
-  --purple: #a855f7;
-  --purple-glow: rgba(168, 85, 247, 0.25);
-  
-  --radius: 14px;
-  --radius-sm: 8px;
-  --radius-lg: 18px;
-  
+  /* ================= 🌌 ARIX COLOR PALETTE (DARK MODE) ================= */
+  --primary: #4A35CF;
+  --primary-rgb: 74, 53, 207;
+  --primary-hover: #5d46e2;
+  --primary-border: #634be3;
+  --primary-glow: rgba(74, 53, 207, 0.45);
+  --primary-light: #7D6BF2;
+
+  /* Semantic Alerts */
+  --success-text: #E1FFD8;
+  --success-border: #56AA2B;
+  --success-bg: #3D8F1F;
+
+  --danger-text: #FFD8D8;
+  --danger-border: #AA2A2A;
+  --danger-bg: #8F1F20;
+
+  --warning-text: #FFF4D8;
+  --warning-border: #AA8B2A;
+  --warning-bg: #8F6E1F;
+
+  --secondary-text: #B2B2C1;
+  --secondary-border: #42425B;
+  --secondary-bg: #2B2B40;
+
+  /* Arix Grays Scale (Dark Mode) */
+  --gray-50: #F4F4F4;   /* Brightest text/titles */
+  --gray-100: #D5D5DB;  /* Headers, section titles */
+  --gray-200: #B2B2C1;  /* Primary body text */
+  --gray-300: #8282A4;  /* Secondary text / muted labels */
+  --gray-400: #5E5E7F;  /* Subdued text, dark icons */
+  --gray-500: #42425B;  /* Borders, dividers, subtle outlines */
+  --gray-600: #2B2B40;  /* Form inputs background, active background */
+  --gray-700: #1D1D37;  /* Cards, modals, sidebars background */
+  --gray-800: #0B0D2A;  /* Main page background */
+  --gray-900: #040519;  /* Top navbar, deepest background */
+
+  /* Legacy mapping aliases for seamless component compatibility */
+  --accent: var(--primary);
+  --accent-hover: var(--primary-hover);
+  --accent-light: var(--primary-light);
+  --accent-glow: var(--primary-glow);
+  --accent-2: #7D6BF2;
+  --accent-2-glow: rgba(125, 107, 242, 0.35);
+
+  --bg: var(--gray-800);
+  --bg-main: var(--gray-800);
+  --bg-card: var(--gray-700);
+  --bg-card-hover: #262645;
+  --bg-input: var(--gray-600);
+  --border: var(--gray-500);
+  --border-focus: var(--primary);
+  --border-hover: rgba(130, 130, 164, 0.55);
+
+  --text: var(--gray-200);
+  --text-primary: var(--gray-50);
+  --text-muted: var(--gray-300);
+  --text-dim: var(--gray-400);
+
+  --green: #56AA2B;
+  --green-glow: rgba(86, 170, 43, 0.3);
+  --red: #AA2A2A;
+  --red-glow: rgba(170, 42, 42, 0.3);
+  --yellow: #AA8B2A;
+  --yellow-glow: rgba(170, 139, 42, 0.3);
+  --purple: var(--primary);
+  --purple-glow: var(--primary-glow);
+
+  /* Arix Radiuses */
+  --radius-box: 10px;
+  --radius-input: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 14px;
+  --radius: var(--radius-box);
+
+  /* Layout Measurements */
   --sidebar-w: 260px;
   --topbar-h: 64px;
-  
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 18px 45px rgba(0, 0, 0, 0.5);
-  
+
+  /* Typography */
+  --font-family: 'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-header: 'IBM Plex Sans', 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'JetBrains Mono', Consolas, monospace;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 18px 45px rgba(0, 0, 0, 0.65);
+
   --panel-blur: 16px;
-  --panel-transparency: 65%;
-  --bg-overlay-val: 0.55;
+  --panel-transparency: 85%;
+  --bg-overlay-val: 0.65;
   color-scheme: dark;
+}
+
+/* ================= ☀️ ARIX LIGHT MODE ================= */
+[data-theme="light"], .lightmode {
+  --primary: #4A35CF;
+  --primary-rgb: 74, 53, 207;
+  --primary-hover: #3c29b5;
+  --primary-border: #4A35CF;
+  --primary-glow: rgba(74, 53, 207, 0.25);
+
+  --success-text: #195b0e;
+  --success-border: #56AA2B;
+  --success-bg: #E1FFD8;
+
+  --danger-text: #7b1212;
+  --danger-border: #AA2A2A;
+  --danger-bg: #FFD8D8;
+
+  --gray-50: #141415;
+  --gray-100: #27272C;
+  --gray-200: #46464D;
+  --gray-300: #626272;
+  --gray-400: #757689;
+  --gray-500: #C0C0D3;
+  --gray-600: #E7E7EF;
+  --gray-700: #FFFFFF;
+  --gray-800: #F0F1F5;
+  --gray-900: #E2E3EB;
+
+  --bg: #F0F1F5;
+  --bg-main: #F0F1F5;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F8F9FD;
+  --bg-input: #FFFFFF;
+  --border: #C0C0D3;
+  --border-focus: var(--primary);
+  --border-hover: #A6A7BD;
+
+  --text: #46464D;
+  --text-primary: #141415;
+  --text-muted: #626272;
+  --text-dim: #757689;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 18px 45px rgba(0, 0, 0, 0.12);
+
+  color-scheme: light;
 }
 
 /* ---------- Global Resets ---------- */
@@ -67,30 +164,43 @@ html, body {
 }
 
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-family);
   background-color: var(--bg);
   background-attachment: fixed;
   color: var(--text);
   font-size: 14px;
   line-height: 1.55;
+  letter-spacing: 0.015em;
   overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-header);
+  color: var(--gray-50);
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 a {
   color: var(--accent-2);
   text-decoration: none;
-  transition: color 0.15s ease, opacity 0.15s ease;
+  transition: color 0.18s ease, opacity 0.18s ease;
 }
 a:hover {
-  color: #7dd3fc;
+  color: #a594ff;
   text-decoration: none;
 }
 
 /* Custom Scrollbars */
-::-webkit-scrollbar { width: 7px; height: 7px; }
-::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.16); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+::-webkit-scrollbar { width: 8px; height: 8px; background: transparent; }
+::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.25); }
+::-webkit-scrollbar-thumb {
+  background: var(--gray-500);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
 
 /* ---------- Ambient Background Layer ---------- */
 body.bg-visible, html:has(body.bg-visible) {
@@ -115,12 +225,12 @@ body.bg-visible, html:has(body.bg-visible) {
 }
 .bg-overlay {
   z-index: -1;
-  background: rgba(5, 8, 18, var(--bg-overlay-val, 0.55));
+  background: rgba(4, 5, 25, var(--bg-overlay-val, 0.65));
   pointer-events: none;
   transition: background 0.3s ease;
 }
 
-/* ---------- Topbar Header ---------- */
+/* ================= 🌌 ARIX TOPBAR NAVBAR ================= */
 .topbar {
   position: fixed;
   top: 0;
@@ -132,36 +242,39 @@ body.bg-visible, html:has(body.bg-visible) {
   gap: 16px;
   padding: 0 24px;
   z-index: 50;
-  background: rgba(9, 13, 25, 0.72);
+  background: rgba(4, 5, 25, 0.88);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 .topbar .brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 800;
-  font-size: 18px;
-  color: #fff;
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--gray-50);
   letter-spacing: -0.3px;
   text-decoration: none;
 }
+.topbar .brand img {
+  height: 32px;
+  border-radius: 6px;
+}
 .topbar .brand-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--primary);
   display: grid;
   place-items: center;
   color: #fff;
-  box-shadow: 0 0 16px var(--accent-glow);
+  box-shadow: 0 0 16px var(--primary-glow);
 }
 .topbar .brand-text {
-  background: linear-gradient(90deg, #ffffff 40%, var(--accent-2));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--gray-50);
+  font-weight: 700;
 }
 .topbar-right {
   margin-left: auto;
@@ -173,10 +286,10 @@ body.bg-visible, html:has(body.bg-visible) {
   position: relative;
 }
 .topbar-search input {
-  background: var(--bg-input);
+  background: var(--gray-600);
   border: 1px solid var(--border);
-  border-radius: 22px;
-  color: var(--text);
+  border-radius: var(--radius-input);
+  color: var(--gray-100);
   padding: 7px 14px 7px 34px;
   width: 220px;
   outline: none;
@@ -184,16 +297,16 @@ body.bg-visible, html:has(body.bg-visible) {
   transition: all 0.2s ease;
 }
 .topbar-search input:focus {
-  border-color: var(--accent);
+  border-color: var(--primary);
   width: 260px;
-  box-shadow: 0 0 14px var(--accent-glow);
+  box-shadow: 0 0 14px var(--primary-glow);
 }
 .topbar-search svg {
   position: absolute;
   left: 11px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-dim);
+  color: var(--gray-400);
   pointer-events: none;
 }
 
@@ -202,14 +315,14 @@ body.bg-visible, html:has(body.bg-visible) {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), var(--purple));
+  background: var(--primary);
   display: grid;
   place-items: center;
   color: #fff;
   font-weight: 700;
   font-size: 12.5px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   border: 1px solid rgba(255,255,255,0.15);
 }
 .avatar img {
@@ -224,56 +337,58 @@ body.bg-visible, html:has(body.bg-visible) {
   height: 34px;
   display: grid;
   place-items: center;
-  background: var(--glass);
+  background: var(--gray-600);
   border: 1px solid var(--border);
-  border-radius: 9px;
-  color: var(--text);
+  border-radius: var(--radius-input);
+  color: var(--gray-200);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 .icon-btn:hover {
-  background: var(--bg-card-hover);
+  background: var(--gray-500);
   border-color: var(--border-hover);
   color: #fff;
   transform: translateY(-1px);
 }
 .icon-btn svg { width: 16px; height: 16px; }
 
-/* ---------- Sidebar Navigation ---------- */
+/* ================= 🌌 ARIX SIDEBAR NAVIGATION ================= */
 .sidebar {
   position: fixed;
   top: var(--topbar-h);
   left: 0;
   bottom: 0;
   width: var(--sidebar-w);
-  padding: 20px 14px 80px;
-  background: rgba(9, 13, 25, 0.58);
+  padding: 16px 10px 80px;
+  background: var(--gray-700);
   border-right: 1px solid var(--border);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
   overflow-y: auto;
   z-index: 40;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
 }
 .nav-section-title {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1.1px;
-  color: var(--text-dim);
-  margin: 18px 10px 8px;
+  letter-spacing: 0.08em;
+  color: var(--gray-300);
+  margin: 18px 12px 6px;
 }
 .nav-link {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8.5px 12px;
+  padding: 9.5px 14px;
   margin-bottom: 3px;
-  border-radius: 10px;
-  color: var(--text-muted);
+  border-radius: var(--radius-input);
+  color: var(--gray-300);
   font-size: 13.5px;
   font-weight: 500;
-  transition: all 0.15s ease;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   text-decoration: none;
 }
@@ -282,35 +397,63 @@ body.bg-visible, html:has(body.bg-visible) {
   align-items: center;
   justify-content: center;
   width: 20px;
+  color: var(--gray-300);
+  transition: color 0.18s ease;
 }
 .nav-link:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text);
+  background: rgba(74, 53, 207, 0.12);
+  color: var(--gray-50);
   text-decoration: none;
   transform: translateX(2px);
 }
-.nav-link.active {
-  background: linear-gradient(90deg, rgba(99, 102, 241, 0.18), rgba(99, 102, 241, 0.06));
-  color: #fff;
-  font-weight: 600;
-  border: 1px solid rgba(99, 102, 241, 0.25);
+.nav-link:hover .v-icon {
+  color: var(--gray-100);
 }
-.nav-link.active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 6px;
-  bottom: 6px;
-  width: 3.5px;
-  background: var(--accent);
-  border-radius: 0 4px 4px 0;
-  box-shadow: 0 0 10px var(--accent);
+.nav-link.active {
+  background: linear-gradient(90deg, rgba(74, 53, 207, 0.28) 0%, rgba(74, 53, 207, 0.08) 100%);
+  color: #ffffff;
+  font-weight: 600;
+  border-right: 3px solid var(--primary);
+  border-radius: 0 var(--radius-input) var(--radius-input) 0;
+}
+.nav-link.active .v-icon {
+  color: var(--primary-light);
+  filter: drop-shadow(0 0 6px rgba(74, 53, 207, 0.7));
 }
 .nav-link svg {
   width: 17px;
   height: 17px;
   flex-shrink: 0;
-  opacity: 0.85;
+}
+
+/* Arix Rainbow Magic Glow Special Link */
+.arix-nav-glow {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(238, 174, 202, 0.3);
+  background: rgba(74, 53, 207, 0.15);
+  font-weight: 600;
+  color: #fff !important;
+}
+.arix-nav-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(225deg, rgba(238, 174, 202, 0.4) 0%, rgba(125, 107, 242, 0.4) 25%, rgba(74, 53, 207, 0.4) 50%, rgba(53, 138, 207, 0.4) 75%, rgba(53, 207, 125, 0.4) 100%);
+  filter: blur(12px);
+  animation: arixAnimationNav 10s infinite linear;
+  opacity: 0.8;
+  transition: opacity 0.3s;
+}
+.arix-nav-glow:hover::after {
+  opacity: 1;
+}
+
+@keyframes arixAnimationNav {
+  0%, 100% { transform: scale(3) rotate(0deg) translateX(-25%) translateY(10px); }
+  33% { transform: scale(3) rotate(10deg) translateX(10px); }
+  66% { transform: scale(4) rotate(4deg) translateX(25%); }
 }
 
 /* ---------- Main Content Container ---------- */
@@ -318,13 +461,14 @@ body.bg-visible, html:has(body.bg-visible) {
   margin-left: var(--sidebar-w);
   padding: calc(var(--topbar-h) + 24px) 32px 100px;
   min-height: 100vh;
+  background: var(--bg);
 }
 
-/* ---------- Cards & Containers ---------- */
-.card {
+/* ================= 🌌 ARIX CARDS & BOXES ================= */
+.card, .boxBorder {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-box);
   backdrop-filter: blur(var(--panel-blur));
   -webkit-backdrop-filter: blur(var(--panel-blur));
   padding: 22px;
@@ -341,7 +485,7 @@ body.bg-visible, html:has(body.bg-visible) {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #fff;
+  color: var(--gray-50);
   letter-spacing: -0.2px;
 }
 
@@ -375,7 +519,7 @@ body.bg-visible, html:has(body.bg-visible) {
   gap: 16px;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-box);
   padding: 18px 20px;
   backdrop-filter: blur(var(--panel-blur));
   -webkit-backdrop-filter: blur(var(--panel-blur));
@@ -389,50 +533,50 @@ body.bg-visible, html:has(body.bg-visible) {
 .stat-icon {
   width: 48px;
   height: 48px;
-  border-radius: 13px;
+  border-radius: var(--radius-box);
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(56, 189, 248, 0.1));
-  color: var(--accent-2);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(74, 53, 207, 0.15);
+  color: var(--primary-light);
+  border: 1px solid rgba(74, 53, 207, 0.35);
 }
 .stat-icon svg { width: 22px; height: 22px; }
 .stat-value {
   font-size: 24px;
   font-weight: 800;
   line-height: 1.15;
-  color: #fff;
+  color: var(--gray-50);
   letter-spacing: -0.3px;
 }
 .stat-label {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--gray-300);
   font-weight: 500;
   margin-top: 3px;
 }
 
-/* ---------- Buttons & Interactive Elements ---------- */
+/* ================= 🌌 ARIX BUTTONS ================= */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   padding: 9px 16px;
-  border-radius: 10px;
+  border-radius: var(--radius-input);
   border: 1px solid var(--border);
-  background: var(--glass);
-  color: var(--text);
+  background: var(--gray-600);
+  color: var(--gray-100);
   cursor: pointer;
   font-size: 13.5px;
   font-weight: 600;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
   user-select: none;
   text-decoration: none;
   font-family: inherit;
 }
 .btn:hover {
-  background: var(--bg-card-hover);
+  background: var(--gray-500);
   border-color: var(--border-hover);
   color: #fff;
   text-decoration: none;
@@ -442,97 +586,99 @@ body.bg-visible, html:has(body.bg-visible) {
 .btn svg { width: 15px; height: 15px; flex-shrink: 0; }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), #4f46e5);
-  border-color: var(--accent);
+  background: var(--primary);
+  border-color: var(--primary-border);
   color: #fff;
-  box-shadow: 0 4px 14px var(--accent-glow);
+  box-shadow: 0 4px 14px var(--primary-glow);
 }
 .btn-primary:hover {
-  background: linear-gradient(135deg, #7174f7, #5951f2);
-  border-color: #7174f7;
+  background: var(--primary-hover);
+  border-color: #715bf2;
   color: #fff;
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 6px 20px rgba(74, 53, 207, 0.5);
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, var(--red), #e11d48);
-  border-color: var(--red);
-  color: #fff;
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger-text);
   box-shadow: 0 4px 14px var(--red-glow);
 }
 .btn-danger:hover {
-  background: linear-gradient(135deg, #fb7185, #f43f5e);
-  border-color: #fb7185;
-  box-shadow: 0 6px 20px rgba(244, 63, 94, 0.4);
+  background: #a32223;
+  border-color: #c43232;
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(170, 42, 42, 0.4);
 }
 
-.btn-green {
-  background: linear-gradient(135deg, var(--green), #059669);
-  border-color: var(--green);
-  color: #fff;
+.btn-green, .btn-success {
+  background: var(--success-bg);
+  border-color: var(--success-border);
+  color: var(--success-text);
   box-shadow: 0 4px 14px var(--green-glow);
 }
-.btn-green:hover {
-  background: linear-gradient(135deg, #34d399, #10b981);
-  border-color: #34d399;
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+.btn-green:hover, .btn-success:hover {
+  background: #46a124;
+  border-color: #64be34;
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(86, 170, 43, 0.4);
 }
 
-.btn-sm { padding: 6px 12px; font-size: 12.5px; border-radius: 8px; }
-.btn-lg { padding: 12px 22px; font-size: 15px; border-radius: 12px; }
+.btn-sm { padding: 6px 12px; font-size: 12.5px; border-radius: var(--radius-sm); }
+.btn-lg { padding: 12px 22px; font-size: 15px; border-radius: var(--radius-box); }
 .btn-block { width: 100%; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
 
-/* ---------- Form Controls ---------- */
+/* ================= 🌌 ARIX FORM CONTROLS ================= */
 label {
   display: block;
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--gray-300);
   margin-bottom: 6px;
 }
-input, select, textarea {
+input, select, textarea, .form-control {
   width: 100%;
   padding: 10px 14px;
-  border-radius: 10px;
+  border-radius: var(--radius-input);
   border: 1px solid var(--border);
   background: var(--bg-input);
-  color: var(--text);
+  color: var(--gray-50);
   font-size: 13.5px;
   outline: none;
   font-family: inherit;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
-input:focus, select:focus, textarea:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px var(--accent-glow);
-  background: rgba(15, 23, 42, 0.85);
+input:focus, select:focus, textarea:focus, .form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(74, 53, 207, 0.25);
+  background: var(--gray-600);
 }
 select {
   cursor: pointer;
   background-color: var(--bg-input);
 }
 select option {
-  background-color: #0f172a;
-  color: #fff;
+  background-color: var(--gray-700);
+  color: var(--gray-50);
 }
 textarea {
   resize: vertical;
   min-height: 95px;
-  font-family: "JetBrains Mono", Consolas, monospace;
+  font-family: var(--font-mono);
 }
 .form-group { margin-bottom: 16px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .form-row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .form-row-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-.form-hint { font-size: 11.5px; color: var(--text-dim); margin-top: 5px; }
+.form-hint { font-size: 11.5px; color: var(--gray-400); margin-top: 5px; }
 
 .check {
   display: flex;
   align-items: center;
   gap: 9px;
   font-size: 13.5px;
-  color: var(--text);
+  color: var(--gray-100);
   cursor: pointer;
 }
 .check input {
@@ -540,7 +686,7 @@ textarea {
   height: 17px;
   cursor: pointer;
   margin: 0;
-  accent-color: var(--accent);
+  accent-color: var(--primary);
 }
 
 /* Range Slider */
@@ -561,19 +707,20 @@ input[type="range"]::-webkit-slider-thumb {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--primary);
   border: 2px solid #fff;
   cursor: pointer;
-  box-shadow: 0 0 12px var(--accent-glow);
+  box-shadow: 0 0 12px var(--primary-glow);
   transition: transform 0.1s ease;
 }
 input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.18); }
 
-/* ---------- Tables & Data Displays ---------- */
+/* ================= 🌌 ARIX TABLES ================= */
 .table-wrap {
   overflow-x: auto;
-  border-radius: 10px;
+  border-radius: var(--radius-box);
   border: 1px solid var(--border);
+  background: var(--gray-700);
 }
 table {
   width: 100%;
@@ -583,31 +730,32 @@ table {
 }
 th {
   padding: 12px 14px;
-  color: var(--text-dim);
+  color: var(--gray-300);
   font-weight: 700;
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
-  background: rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.08em;
+  background: var(--gray-900);
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 td {
   padding: 13px 14px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(66, 66, 91, 0.4);
   vertical-align: middle;
+  color: var(--gray-200);
 }
 tr:last-child td { border-bottom: none; }
-tr:hover td { background: rgba(255, 255, 255, 0.028); }
+tr:hover td { background: rgba(74, 53, 207, 0.04); }
 
-/* ---------- Pills & Indicator Badges ---------- */
+/* ================= 🌌 ARIX PILLS & STATUS BADGES ================= */
 .pill {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   padding: 3.5px 11px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -620,34 +768,43 @@ tr:hover td { background: rgba(255, 255, 255, 0.028); }
 }
 
 .pill-green {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  background: rgba(61, 143, 31, 0.18);
+  color: #56AA2B;
+  border: 1px solid #56AA2B;
 }
 .pill-green::before {
-  box-shadow: 0 0 8px #34d399;
+  box-shadow: 0 0 8px #56AA2B;
   animation: pulseGreen 2s infinite;
 }
 
 .pill-red {
-  background: rgba(244, 63, 94, 0.15);
-  color: #fb7185;
-  border: 1px solid rgba(244, 63, 94, 0.25);
+  background: rgba(143, 31, 32, 0.18);
+  color: #ff7575;
+  border: 1px solid #AA2A2A;
 }
-.pill-yellow {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.25);
+
+.pill-yellow, .pill-amber {
+  background: rgba(143, 110, 31, 0.18);
+  color: #f7ca45;
+  border: 1px solid #AA8B2A;
 }
-.pill-blue {
-  background: rgba(99, 102, 241, 0.18);
-  color: #a5b4fc;
-  border: 1px solid rgba(99, 102, 241, 0.25);
+
+.pill-blue, .pill-primary {
+  background: rgba(74, 53, 207, 0.18);
+  color: #9B8DF2;
+  border: 1px solid rgba(74, 53, 207, 0.5);
 }
+
+.pill-cyan {
+  background: rgba(6, 182, 212, 0.18);
+  color: #67e8f9;
+  border: 1px solid rgba(6, 182, 212, 0.4);
+}
+
 .pill-gray {
-  background: rgba(148, 163, 184, 0.12);
-  color: #94a3b8;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(66, 66, 91, 0.3);
+  color: var(--gray-300);
+  border: 1px solid var(--gray-500);
 }
 
 @keyframes pulseGreen {
@@ -656,10 +813,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.028); }
   100% { transform: scale(0.95); opacity: 0.8; }
 }
 
-/* ---------- Alerts ---------- */
+/* ================= 🌌 ARIX ALERTS ================= */
 .alert {
   padding: 12px 16px;
-  border-radius: 10px;
+  border-radius: var(--radius-input);
   margin-bottom: 16px;
   font-size: 13.5px;
   font-weight: 500;
@@ -669,28 +826,28 @@ tr:hover td { background: rgba(255, 255, 255, 0.028); }
   gap: 10px;
 }
 .alert-error {
-  background: rgba(244, 63, 94, 0.15);
-  border-color: rgba(244, 63, 94, 0.3);
-  border-left: 4px solid var(--red);
-  color: #fb7185;
+  background: rgba(143, 31, 32, 0.18);
+  border-color: #AA2A2A;
+  border-left: 4px solid #AA2A2A;
+  color: #ff9191;
 }
 .alert-success {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.3);
-  border-left: 4px solid var(--green);
-  color: #34d399;
+  background: rgba(61, 143, 31, 0.18);
+  border-color: #56AA2B;
+  border-left: 4px solid #56AA2B;
+  color: #8ce461;
 }
 .alert-info {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: rgba(56, 189, 248, 0.3);
-  border-left: 4px solid var(--accent-2);
-  color: #38bdf8;
+  background: rgba(74, 53, 207, 0.18);
+  border-color: var(--primary);
+  border-left: 4px solid var(--primary);
+  color: #b7a9ff;
 }
 .alert-warning {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.3);
-  border-left: 4px solid var(--yellow);
-  color: #fbbf24;
+  background: rgba(143, 110, 31, 0.18);
+  border-color: #AA8B2A;
+  border-left: 4px solid #AA8B2A;
+  color: #f7ca45;
 }
 
 /* ---------- Floating Toast Notifications ---------- */
@@ -708,27 +865,27 @@ tr:hover td { background: rgba(255, 255, 255, 0.028); }
   min-width: 270px;
   max-width: 380px;
   padding: 13px 18px;
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.95);
+  border-radius: var(--radius-box);
+  background: var(--gray-700);
   border: 1px solid var(--border);
   color: #fff;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(16px);
   animation: slideInToast 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: auto;
   font-size: 13.5px;
   font-weight: 500;
 }
-.toast.success { border-color: var(--green); border-left: 4px solid var(--green); }
-.toast.error { border-color: var(--red); border-left: 4px solid var(--red); }
-.toast.info { border-color: var(--accent); border-left: 4px solid var(--accent); }
+.toast.success { border-color: #56AA2B; border-left: 4px solid #56AA2B; }
+.toast.error { border-color: #AA2A2A; border-left: 4px solid #AA2A2A; }
+.toast.info { border-color: var(--primary); border-left: 4px solid var(--primary); }
 
 @keyframes slideInToast {
   from { transform: translateX(40px); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* ---------- Auth Wrapper & Cards ---------- */
+/* ================= 🌌 ARIX AUTH PAGES ================= */
 .auth-wrap {
   min-height: 100vh;
   display: grid;
@@ -736,37 +893,46 @@ tr:hover td { background: rgba(255, 255, 255, 0.028); }
   padding: 24px;
   position: relative;
   z-index: 2;
+  background: #0B0D2A url('/arix/background-login.png') no-repeat center center / cover;
+}
+.auth-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 13, 42, 0.82);
+  backdrop-filter: blur(8px);
+  z-index: -1;
 }
 .auth-card {
   width: 100%;
   max-width: 440px;
   padding: 38px 34px;
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(29, 29, 55, 0.88);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-box);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
 }
 .auth-title {
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.3px;
-  color: #fff;
+  color: var(--gray-50);
   text-align: center;
 }
 .auth-sub {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--gray-300);
   text-align: center;
   margin-top: 4px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 .auth-foot {
   text-align: center;
   font-size: 13px;
-  color: var(--text-muted);
-  margin-top: 20px;
+  color: var(--gray-300);
+  margin-top: 24px;
 }
 
 /* ---------- Navigation Tabs ---------- */
@@ -778,43 +944,46 @@ tr:hover td { background: rgba(255, 255, 255, 0.028); }
 }
 .tab {
   padding: 8.5px 16px;
-  border-radius: 10px;
+  border-radius: var(--radius-input);
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--text-muted);
-  background: var(--glass);
+  color: var(--gray-300);
+  background: var(--gray-600);
   border: 1px solid var(--border);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
   text-decoration: none;
   font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .tab:hover {
   color: #fff;
-  background: var(--bg-card-hover);
+  background: var(--gray-500);
   border-color: var(--border-hover);
   text-decoration: none;
 }
 .tab.active {
   color: #fff;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(56, 189, 248, 0.12));
-  border-color: var(--accent);
-  box-shadow: 0 0 14px var(--accent-glow);
+  background: var(--primary);
+  border-color: var(--primary-border);
+  box-shadow: 0 0 14px var(--primary-glow);
 }
 
-/* ---------- Console / Web Terminal ---------- */
+/* ================= 🌌 ARIX WEB TERMINAL ================= */
 .console-tabs {
   display: flex;
   gap: 8px;
   margin-bottom: 14px;
 }
 .console-tab {
-  padding: 9px 18px;
-  border-radius: 10px;
-  font-size: 13.5px;
+  padding: 8.5px 16px;
+  border-radius: var(--radius-input);
+  font-size: 13px;
   font-weight: 600;
-  color: var(--text-muted);
-  background: var(--glass);
+  color: var(--gray-300);
+  background: var(--gray-600);
   border: 1px solid var(--border);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -822,17 +991,18 @@ tr:hover td { background: rgba(255, 255, 255, 0.028); }
 .console-tab:hover { color: #fff; border-color: var(--border-hover); }
 .console-tab.active {
   color: #fff;
-  background: var(--accent);
-  border-color: var(--accent);
-  box-shadow: 0 4px 14px var(--accent-glow);
+  background: var(--primary);
+  border-color: var(--primary);
+  box-shadow: 0 4px 14px var(--primary-glow);
 }
 .terminal {
-  border-radius: var(--radius);
+  border-radius: var(--radius-box);
   overflow: hidden;
-  background: #060911;
+  background: var(--gray-900);
   border: 1px solid var(--border);
   min-height: 480px;
   padding: 14px;
+  font-family: var(--font-mono);
 }
 .console-toolbar {
   display: flex;
@@ -840,6 +1010,33 @@ tr:hover td { background: rgba(255, 255, 255, 0.028); }
   align-items: center;
   margin-bottom: 14px;
   flex-wrap: wrap;
+}
+
+/* ================= 🌌 ARIX MODALS ================= */
+.modal-backdrop, .modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 5, 25, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.modal-card {
+  background: var(--gray-700);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-box);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75);
+  max-width: 600px;
+  width: 100%;
+  overflow: hidden;
+  animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* ---------- Spacing & Utility Classes ---------- */
@@ -855,8 +1052,8 @@ tr:hover td { background: rgba(255, 255, 255, 0.028); }
 .mt-3 { margin-top: 16px !important; }
 .mt-4 { margin-top: 24px !important; }
 
-.muted { color: var(--text-muted); font-size: 12.5px; }
-.mono { font-family: "JetBrains Mono", Menlo, Monaco, Consolas, monospace; }
+.muted { color: var(--gray-300); font-size: 12.5px; }
+.mono { font-family: var(--font-mono); }
 .font-bold { font-weight: 700; }
 .font-semibold { font-weight: 600; }
 .text-sm { font-size: 12.5px; }
@@ -867,7 +1064,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.028); }
 .empty {
   text-align: center;
   padding: 48px 20px;
-  color: var(--text-dim);
+  color: var(--gray-400);
 }
 .empty svg {
   width: 44px;
@@ -907,7 +1104,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.028); }
   bottom: 20px;
   right: 24px;
   z-index: 60;
-  background: rgba(15, 23, 42, 0.85);
+  background: var(--gray-700);
   border: 1px solid var(--border);
   border-radius: 30px;
   padding: 6px 16px;

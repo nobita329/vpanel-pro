@@ -1,14 +1,24 @@
 <%- include('../partials/head', { title: 'Email Verification' }) %>
 <%- include('../partials/ambient') %>
 <div class="auth-wrap">
-  <div class="auth-card">
-    <h1 class="auth-title">Email verification</h1>
+  <div class="auth-card" style="text-align:center">
+    <div class="auth-logo" style="display:flex;flex-direction:column;align-items:center;margin-bottom:20px">
+      <% const pn = settings['panel.name'] || 'vPanel Pro'; 
+         let lg = '';
+         if (settings['panel.logo_mode']==='upload' && settings['panel.logo_file']) lg = settings['panel.logo_file'];
+         else if (settings['panel.logo_mode']==='url' && settings['panel.logo_url']) lg = settings['panel.logo_url'];
+         if (!lg) lg = '/arix/Arix.png';
+      %>
+      <img src="<%= lg %>" alt="Arix Logo" style="height:48px;border-radius:10px;margin-bottom:12px;filter:drop-shadow(0 4px 14px rgba(74,53,207,0.4))"/>
+      <span style="font-size:22px;font-weight:700;color:var(--gray-50);letter-spacing:-0.4px"><%= pn %></span>
+    </div>
+    <h1 class="auth-title" style="font-size:20px;font-weight:700;margin-bottom:12px">Email Verification</h1>
     <% if (typeof ok !== 'undefined' && ok) { %>
-      <div class="alert alert-success">Your email has been verified successfully! You can now sign in.</div>
-      <a href="/login" class="btn btn-primary btn-block">Go to Login</a>
+      <div class="alert alert-success" style="justify-content:center">Your email has been verified successfully! You can now sign in.</div>
+      <a href="/login" class="btn btn-primary btn-block mt-3" style="padding:12px;font-weight:700">Go to Sign In</a>
     <% } else { %>
-      <div class="alert alert-error"><%= error || 'Verification failed' %></div>
-      <a href="/login" class="btn btn-block">Back to login</a>
+      <div class="alert alert-error" style="justify-content:center"><%= error || 'Verification failed or link expired' %></div>
+      <a href="/login" class="btn btn-block mt-3" style="padding:12px">Back to Sign In</a>
     <% } %>
   </div>
 </div>

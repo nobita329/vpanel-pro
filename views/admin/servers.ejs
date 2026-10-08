@@ -2,74 +2,297 @@
 <%- include('../partials/ambient') %>
 <%- include('../partials/topbar') %>
 <%- include('../partials/sidebar') %>
+
+<%
+  const vmList = (typeof vms !== 'undefined' && vms) || [];
+  const nodeList = (typeof nodes !== 'undefined' && nodes) || [
+    { id: 1, name: 'Local Cluster / Node 1', fqdn: 'localhost' }
+  ];
+  const filterVal = (typeof filterQuery !== 'undefined' && filterQuery) || '';
+%>
+
 <div class="main">
-  <div class="flex-between mb-4">
-    <div>
-      <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.4px">Server Management</h2>
-      <div class="muted" style="margin-top:2px">Manage all virtual machines across your cluster</div>
-    </div>
-    <a class="btn btn-primary" href="/admin/servers/create">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 5v14M5 12h14"/></svg>
-      Create Virtual Machine
-    </a>
+  <!-- Breadcrumbs -->
+  <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+    <a href="/admin" style="color:var(--text-muted);text-decoration:none">Admin</a>
+    <span>/</span>
+    <span style="color:var(--accent);font-weight:600">Servers</span>
   </div>
 
-  <div class="card">
-    <div class="flex-between mb-3" style="flex-wrap:wrap;gap:10px">
-      <div class="flex" style="gap:10px;align-items:center">
-        <div class="card-title" style="margin:0">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
-          All Cluster Instances (<%= vms.length %>)
+  <!-- Header -->
+  <div class="flex-between mb-4" style="flex-wrap:wrap;gap:12px">
+    <div>
+      <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.4px;margin:0">Servers</h2>
+      <div class="muted" style="margin-top:2px">All servers available on the system.</div>
+    </div>
+    <div class="flex" style="gap:10px">
+      <a class="btn btn-primary" href="/admin/servers/create" style="background:#10b981;border-color:#10b981;display:flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 5v14M5 12h14"/></svg>
+        Create New
+      </a>
+      <div class="flex" style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;padding:2px;gap:2px">
+        <button id="btnAdminTable" class="btn btn-sm btn-primary" onclick="setAdminVmView('table')" title="Table View" style="padding:5px 10px;font-size:12px;display:flex;align-items:center;gap:4px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Table
+        </button>
+        <button id="btnAdminCards" class="btn btn-sm" onclick="setAdminVmView('cards')" title="Cards View" style="padding:5px 10px;font-size:12px;display:flex;align-items:center;gap:4px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Cards
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mass Actions Section (Root Admin) -->
+  <% if (user && (user.root_admin || user.role === 'admin')) { %>
+  <div class="card mb-4" id="ma-section" style="border:1px solid rgba(59,130,246,0.35);background:rgba(59,130,246,0.03);padding:18px">
+    <div class="flex-between mb-3" style="border-bottom:1px solid rgba(255,255,255,0.07);padding-bottom:10px">
+      <div style="font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;color:#60a5fa">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Mass Actions
+      </div>
+      <span id="ma-selected-count" class="pill pill-blue font-bold" style="font-size:11px;padding:3px 10px">0 servers selected</span>
+    </div>
+
+    <div class="grid grid-4" style="gap:16px;align-items:start">
+      <!-- 1. Selection Shortcuts -->
+      <div>
+        <div class="muted text-sm font-bold mb-1" style="color:var(--text);display:flex;align-items:center;gap:5px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Selection
+        </div>
+        <p class="muted text-sm" style="font-size:11.5px;margin-bottom:8px">Use table checkboxes or shortcuts below.</p>
+        <div class="flex" style="gap:6px">
+          <button type="button" class="btn btn-sm" onclick="maSelectAll()" style="font-size:11px;padding:3px 8px">Select All</button>
+          <button type="button" class="btn btn-sm" onclick="maDeselectAll()" style="font-size:11px;padding:3px 8px">Deselect All</button>
         </div>
       </div>
 
-      <div class="flex" style="gap:8px;align-items:center;flex-wrap:wrap">
-        <input type="search" id="serverFilter" placeholder="Filter by name, owner, or port..." style="width:230px;padding:5px 10px;font-size:12.5px;border-radius:6px"/>
-        <div class="flex" style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;padding:2px;gap:2px">
-          <button id="btnAdminCards" class="btn btn-sm btn-primary" onclick="setAdminVmView('cards')" title="Card View" style="padding:4px 8px;font-size:12px">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-            Cards
+      <!-- 2. Suspension -->
+      <div>
+        <div class="muted text-sm font-bold mb-1" style="color:var(--text);display:flex;align-items:center;gap:5px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          Suspension
+        </div>
+        <p class="muted text-sm" style="font-size:11.5px;margin-bottom:8px">Toggle suspension status on selected servers.</p>
+        <div class="flex" style="gap:6px">
+          <button id="ma-btn-suspend" type="button" class="btn btn-sm" onclick="maBulkAction('suspend')" disabled style="font-size:11px;padding:3px 8px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#fbbf24">
+            Suspend
           </button>
-          <button id="btnAdminTable" class="btn btn-sm" onclick="setAdminVmView('table')" title="Table View" style="padding:4px 8px;font-size:12px">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-            Table
+          <button id="ma-btn-unsuspend" type="button" class="btn btn-sm btn-green" onclick="maBulkAction('unsuspend')" disabled style="font-size:11px;padding:3px 8px">
+            Unsuspend
           </button>
         </div>
+        <div id="ma-suspend-result" style="margin-top:6px;font-size:11.5px"></div>
+      </div>
+
+      <!-- 3. Deletion -->
+      <div>
+        <div class="muted text-sm font-bold mb-1" style="color:var(--text);display:flex;align-items:center;gap:5px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Delete
+        </div>
+        <p class="muted text-sm" style="font-size:11.5px;margin-bottom:6px">Permanently delete selected servers.</p>
+        <label style="font-size:11.5px;color:var(--text-muted);display:flex;align-items:center;gap:5px;cursor:pointer;margin-bottom:6px">
+          <input type="checkbox" id="ma-force-delete"/> Force delete (bypass checks)
+        </label>
+        <button id="ma-btn-delete" type="button" class="btn btn-sm btn-danger" onclick="maConfirmDelete()" disabled style="font-size:11px;padding:3px 8px">
+          Delete Selected
+        </button>
+        <div id="ma-delete-result" style="margin-top:6px;font-size:11.5px"></div>
+      </div>
+
+      <!-- 4. Transfer to Node -->
+      <div>
+        <div class="muted text-sm font-bold mb-1" style="color:var(--text);display:flex;align-items:center;gap:5px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          Transfer to Node
+        </div>
+        <p class="muted text-sm" style="font-size:11.5px;margin-bottom:6px">Move selected instances to destination node.</p>
+        <select id="ma-transfer-node" style="width:100%;padding:5px 8px;font-size:11.5px;border-radius:6px;margin-bottom:6px">
+          <% for (const n of nodeList) { %>
+            <option value="<%= n.id %>"><%= n.name %></option>
+          <% } %>
+        </select>
+        <button id="ma-btn-transfer" type="button" class="btn btn-sm btn-primary" onclick="maBulkTransfer()" disabled style="font-size:11px;padding:3px 8px">
+          Transfer Selected
+        </button>
+        <div id="ma-transfer-result" style="margin-top:6px;font-size:11.5px"></div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Server List Main Container -->
+  <div class="card">
+    <div class="flex-between mb-3" style="align-items:center;gap:16px;flex-wrap:wrap">
+      <div class="card-title" style="margin:0;display:flex;align-items:center;gap:8px;white-space:nowrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
+        Server List (<span id="serverCount"><%= vmList.length %></span>)
+      </div>
+
+      <!-- Filters matching Pterodactyl -->
+      <div class="flex" style="gap:8px;align-items:center;flex-wrap:nowrap">
+        <div style="position:relative;width:200px">
+          <input type="search" id="serverFilter" value="<%= filterVal %>" placeholder="Search servers…" style="width:100%;height:34px;padding:6px 10px 6px 30px;font-size:12px;border-radius:6px;box-sizing:border-box"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+
+        <select id="filterNode" style="width:160px;height:34px;padding:4px 10px;font-size:12px;border-radius:6px;box-sizing:border-box">
+          <option value="">All nodes</option>
+          <% for (const n of nodeList) { %>
+            <option value="<%= n.name %>"><%= n.name %></option>
+          <% } %>
+        </select>
+
+        <select id="filterStatus" style="width:130px;height:34px;padding:4px 10px;font-size:12px;border-radius:6px;box-sizing:border-box">
+          <option value="">Any status</option>
+          <option value="active">Active (Online)</option>
+          <option value="stopped">Stopped</option>
+          <option value="suspended">Suspended</option>
+        </select>
       </div>
     </div>
 
-    <% if (vms.length === 0) { %>
-      <div class="empty">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
+    <% if (vmList.length === 0) { %>
+      <div class="empty" style="padding:36px;text-align:center">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48" style="opacity:0.3;margin-bottom:12px"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
         <p style="font-size:15px;font-weight:600;color:var(--text)">No servers found</p>
         <p class="muted">No virtual machines have been provisioned yet.</p>
         <div class="mt-3"><a href="/admin/servers/create" class="btn btn-primary">Create First Server</a></div>
       </div>
     <% } else { %>
-      <!-- Default Card View -->
-      <div id="adminCardGrid" class="grid grid-3 mb-2" style="gap:14px;margin-top:10px">
-        <% for (const v of vms) { %>
-          <div class="admin-card-item" data-search="<%= v.name %> <%= v.owner_name %> <%= v.username %> <%= v.hostname %> <%= v.ssh_port %> <%= v.os_type %>" style="border:1px solid var(--border);border-radius:12px;padding:16px;background:rgba(255,255,255,0.02);display:flex;flex-direction:column;justify-content:space-between;gap:12px;box-shadow:0 4px 14px rgba(0,0,0,0.15)">
+
+      <!-- 1. Pterodactyl-Style Table View (Default) -->
+      <div id="adminTableView" class="table-wrap">
+        <table id="serverTable">
+          <thead>
+            <tr>
+              <% if (user && (user.root_admin || user.role === 'admin')) { %>
+                <th style="width:36px;text-align:center">
+                  <input type="checkbox" id="ma-check-all" title="Select all on this page" onclick="maToggleAll(this.checked)" style="width:16px;height:16px;cursor:pointer"/>
+                </th>
+              <% } %>
+              <th>Server Name</th>
+              <th style="white-space:nowrap">UUID</th>
+              <th style="white-space:nowrap">Owner</th>
+              <th style="white-space:nowrap">Node</th>
+              <th style="white-space:nowrap">Connection</th>
+              <th style="white-space:nowrap">Type</th>
+              <th class="text-center" style="white-space:nowrap;text-align:center">Status</th>
+              <th style="width:170px;text-align:right;white-space:nowrap">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          <% for (const v of vmList) { 
+               const ownerLabel = v.owner_username || v.owner_name || 'Admin';
+               const nodeLabel = v.node_name || 'Local Cluster / Node 1';
+               const statusText = v.suspended ? 'suspended' : (v.status === 'running' ? 'active' : 'stopped');
+          %>
+            <tr class="server-row" 
+                data-search="<%= `${v.name} ${v.uuid} ${ownerLabel} ${nodeLabel} ${v.ssh_port} ${v.os_type || ''} ${v.status} ${v.suspended ? 'suspended' : ''}`.toLowerCase() %>"
+                data-node="<%= nodeLabel %>"
+                data-status="<%= statusText %>">
+              <% if (user && (user.root_admin || user.role === 'admin')) { %>
+                <td style="text-align:center;width:36px">
+                  <input type="checkbox" class="ma-server-check" data-server-id="<%= v.id %>" data-server-name="<%= v.name %>" onchange="maUpdateUI()" style="width:16px;height:16px;cursor:pointer"/>
+                </td>
+              <% } %>
+              <td>
+                <div class="flex" style="gap:9px;align-items:center">
+                  <div style="width:28px;height:28px;border-radius:7px;background:var(--glass);display:grid;place-items:center;border:1px solid var(--border);flex-shrink:0">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" width="14" height="14"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
+                  </div>
+                  <div>
+                    <a href="/admin/servers/<%= v.id %>" style="font-weight:700;color:#fff;text-decoration:none;font-size:13.5px">
+                      <%= v.name %>
+                    </a>
+                    <div class="muted text-sm mono" style="font-size:10.5px"><%= v.os_type || 'linux' %> · <%= v.cpus %> vCPU · <%= v.memory %>MB</div>
+                  </div>
+                </div>
+              </td>
+              <td style="white-space:nowrap">
+                <code title="<%= v.uuid %>" style="font-size:11px;user-select:all"><%= (v.uuidShort || v.uuid || String(v.id)).slice(0, 8) %></code>
+              </td>
+              <td style="white-space:nowrap">
+                <a href="/admin/users/<%= v.owner_id %>" style="color:var(--text);font-weight:600;text-decoration:none;font-size:12.5px" title="View <%= ownerLabel %> profile">
+                  <%= ownerLabel %>
+                </a>
+              </td>
+              <td style="white-space:nowrap">
+                <span class="muted text-sm font-bold"><%= nodeLabel %></span>
+              </td>
+              <td style="white-space:nowrap">
+                <code class="mono font-bold" style="font-size:11px;color:var(--accent)">localhost:<%= v.ssh_port %></code>
+              </td>
+              <td style="white-space:nowrap">
+                <span class="pill pill-gray" style="font-size:10.5px">Standard</span>
+              </td>
+              <td class="text-center" style="white-space:nowrap;text-align:center">
+                <% if (v.suspended) { %>
+                  <span class="pill pill-red font-bold" style="font-size:10.5px;padding:2px 8px">Suspended</span>
+                <% } else if (v.status === 'running') { %>
+                  <span class="pill pill-green font-bold" style="font-size:10.5px;padding:2px 8px">● Active</span>
+                <% } else { %>
+                  <span class="pill pill-gray font-bold" style="font-size:10.5px;padding:2px 8px">Stopped</span>
+                <% } %>
+              </td>
+              <td style="text-align:right;white-space:nowrap">
+                <div class="flex" style="gap:4px;justify-content:flex-end">
+                  <a class="btn btn-sm" href="/servers/<%= v.id %>/console" title="Open Console Terminal" style="padding:4px 8px;font-size:11px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                  </a>
+                  <a class="btn btn-sm" href="/admin/servers/<%= v.id %>" title="Manage Server" style="padding:4px 9px;font-size:11px;display:inline-flex;align-items:center;gap:4px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                    Manage
+                  </a>
+                  <button class="btn btn-sm btn-danger" onclick="quickDeleteServer('<%= v.id %>', '<%= v.name %>')" title="Delete Server" style="padding:4px 8px;font-size:11px">
+                    ✕
+                  </button>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 2. Alternative Card Grid View (Toggleable) -->
+      <div id="adminCardGrid" class="grid grid-3 mb-2" style="gap:14px;display:none;margin-top:12px">
+        <% for (const v of vmList) { 
+             const ownerLabel = v.owner_username || v.owner_name || 'Admin';
+             const nodeLabel = v.node_name || 'Local Cluster / Node 1';
+             const statusText = v.suspended ? 'suspended' : (v.status === 'running' ? 'active' : 'stopped');
+        %>
+          <div class="admin-card-item server-row" 
+               data-search="<%= `${v.name} ${v.uuid} ${ownerLabel} ${nodeLabel} ${v.ssh_port} ${v.os_type || ''} ${v.status} ${v.suspended ? 'suspended' : ''}`.toLowerCase() %>"
+               data-node="<%= nodeLabel %>"
+               data-status="<%= statusText %>"
+               style="border:1px solid var(--border);border-radius:12px;padding:16px;background:rgba(255,255,255,0.02);display:flex;flex-direction:column;justify-content:space-between;gap:12px">
             <div>
               <div class="flex-between mb-2">
                 <div class="flex" style="gap:10px;align-items:center">
                   <div style="width:36px;height:36px;border-radius:10px;background:var(--glass);display:grid;place-items:center;border:1px solid var(--border)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-2)" stroke-width="2" width="18" height="18"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" width="18" height="18"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
                   </div>
                   <div>
-                    <a href="/admin/servers/<%= v.id %>" style="font-weight:700;color:#fff;font-size:14.5px"><%= v.name %></a>
-                    <div class="muted mono text-sm" style="font-size:11px"><%= v.username %>@<%= v.hostname || 'localhost' %></div>
+                    <a href="/admin/servers/<%= v.id %>" style="font-weight:700;color:#fff;font-size:14.5px;text-decoration:none"><%= v.name %></a>
+                    <div class="muted mono text-sm" style="font-size:11px"><%= ownerLabel %> · <code><%= (v.uuidShort || v.uuid || String(v.id)).slice(0, 8) %></code></div>
                   </div>
                 </div>
-                <span class="pill <%= v.status === 'running' ? 'pill-green' : 'pill-gray' %>" style="font-size:11px">
-                  <%= v.status === 'running' ? '● Online' : 'Stopped' %>
-                </span>
+                <% if (v.suspended) { %>
+                  <span class="pill pill-red font-bold" style="font-size:10.5px">Suspended</span>
+                <% } else { %>
+                  <span class="pill <%= v.status === 'running' ? 'pill-green' : 'pill-gray' %> font-bold" style="font-size:10.5px">
+                    <%= v.status === 'running' ? '● Active' : 'Stopped' %>
+                  </span>
+                <% } %>
               </div>
 
               <div class="flex" style="gap:6px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
-                <span class="muted text-sm font-bold" style="font-size:11px;background:rgba(255,255,255,0.05);padding:2px 7px;border-radius:4px">Owner: <%= v.owner_name %></span>
                 <span class="pill pill-blue font-bold" style="font-size:10.5px"><%= v.os_type || 'linux' %></span>
-                <span class="pill mono font-bold" style="font-size:10.5px;color:var(--accent-2)">Port <%= v.ssh_port %></span>
+                <span class="pill mono font-bold" style="font-size:10.5px;color:var(--accent)">Port <%= v.ssh_port %></span>
+                <span class="muted text-sm" style="font-size:11px"><%= nodeLabel %></span>
               </div>
 
               <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;padding:8px 10px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center">
@@ -90,144 +313,215 @@
 
             <div class="flex-between" style="border-top:1px solid var(--border);padding-top:10px;gap:6px;flex-wrap:wrap">
               <div class="flex" style="gap:4px">
-                <a class="btn btn-sm" href="/servers/<%= v.id %>/console" title="Open Terminal">Terminal</a>
+                <a class="btn btn-sm" href="/servers/<%= v.id %>/console" title="Open Console">Terminal</a>
                 <% if (v.status === 'running') { %>
-                  <button class="btn btn-sm btn-danger" onclick="action(<%= v.id %>,'stop')">Stop</button>
-                  <button class="btn btn-sm btn-primary" onclick="action(<%= v.id %>,'restart')">Restart</button>
+                  <button class="btn btn-sm btn-danger" onclick="serverAction('<%= v.id %>','stop')">Stop</button>
+                  <button class="btn btn-sm btn-primary" onclick="serverAction('<%= v.id %>','restart')">Restart</button>
                 <% } else { %>
-                  <button class="btn btn-sm btn-green" onclick="action(<%= v.id %>,'start')">Start</button>
+                  <button class="btn btn-sm btn-green" onclick="serverAction('<%= v.id %>','start')">Start</button>
                 <% } %>
               </div>
               <div class="flex" style="gap:4px">
                 <a class="btn btn-sm" href="/admin/servers/<%= v.id %>">Manage</a>
-                <button class="btn btn-sm btn-danger" onclick="del(<%= v.id %>)">✕</button>
+                <button class="btn btn-sm btn-danger" onclick="quickDeleteServer('<%= v.id %>', '<%= v.name %>')">✕</button>
               </div>
             </div>
           </div>
         <% } %>
       </div>
 
-      <!-- Alternative Table View -->
-      <div id="adminTableView" class="table-wrap" style="display:none">
-        <table id="serverTable">
-          <thead>
-            <tr>
-              <th>Server Name</th>
-              <th>Owner</th>
-              <th>OS / Distro</th>
-              <th>Hardware Specs</th>
-              <th>SSH Port</th>
-              <th>Status</th>
-              <th>Created</th>
-              <th class="right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-          <% for (const v of vms) { %>
-            <tr class="server-row" data-search="<%= v.name %> <%= v.owner_name %> <%= v.username %> <%= v.hostname %> <%= v.ssh_port %> <%= v.os_type %>">
-              <td>
-                <div class="flex" style="gap:10px">
-                  <div style="width:32px;height:32px;border-radius:9px;background:var(--glass);display:grid;place-items:center;border:1px solid var(--border)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-2)" stroke-width="2" width="16" height="16"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
-                  </div>
-                  <div>
-                    <a href="/admin/servers/<%= v.id %>" style="font-weight:700;color:#fff;font-size:13.5px"><%= v.name %></a>
-                    <div class="muted text-sm mono" style="font-size:11px"><%= v.username %>@<%= v.hostname || 'localhost' %></div>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <span class="muted font-bold"><%= v.owner_name %></span>
-              </td>
-              <td><span class="pill pill-blue font-bold"><%= v.os_type || '-' %></span></td>
-              <td><span class="muted"><%= v.cpus %> vCPU · <%= v.memory %>MB · <%= v.disk_size %></span></td>
-              <td class="mono font-bold" style="color:var(--accent-2)">Port <%= v.ssh_port %></td>
-              <td><span class="pill <%= v.status === 'running' ? 'pill-green' : 'pill-gray' %>"><%= v.status %></span></td>
-              <td class="muted text-sm"><%= new Date(v.created_at).toLocaleDateString() %></td>
-              <td class="right">
-                <div class="flex right" style="gap:6px">
-                  <a class="btn btn-sm" href="/servers/<%= v.id %>/console" title="Open Terminal">Terminal</a>
-                  <% if (v.status === 'running') { %>
-                    <button class="btn btn-sm btn-danger" onclick="action(<%= v.id %>,'stop')">Stop</button>
-                    <button class="btn btn-sm btn-primary" onclick="action(<%= v.id %>,'restart')">Restart</button>
-                  <% } else { %>
-                    <button class="btn btn-sm btn-green" onclick="action(<%= v.id %>,'start')">Start</button>
-                  <% } %>
-                  <a class="btn btn-sm" href="/admin/servers/<%= v.id %>">Manage</a>
-                  <button class="btn btn-sm btn-danger" onclick="del(<%= v.id %>)">Delete</button>
-                </div>
-              </td>
-            </tr>
-          <% } %>
-          </tbody>
-        </table>
-      </div>
     <% } %>
   </div>
 </div>
+
 <%- include('../partials/music') %>
 <%- include('../partials/foot') %>
 
 <script>
+// View Switcher (Table vs Cards)
 function setAdminVmView(mode) {
-  const cardGrid = document.getElementById('adminCardGrid');
-  const tableView = document.getElementById('adminTableView');
-  const btnCards = document.getElementById('btnAdminCards');
-  const btnTable = document.getElementById('btnAdminTable');
+  const table = document.getElementById('adminTableView');
+  const cards = document.getElementById('adminCardGrid');
+  const btnT = document.getElementById('btnAdminTable');
+  const btnC = document.getElementById('btnAdminCards');
 
-  if (mode === 'table') {
-    if (cardGrid) cardGrid.style.display = 'none';
-    if (tableView) tableView.style.display = 'block';
-    if (btnCards) btnCards.className = 'btn btn-sm';
-    if (btnTable) btnTable.className = 'btn btn-sm btn-primary';
-    localStorage.setItem('admin_vm_view_pref', 'table');
+  if (mode === 'cards') {
+    if (table) table.style.display = 'none';
+    if (cards) cards.style.display = 'grid';
+    if (btnC) { btnC.classList.add('btn-primary'); }
+    if (btnT) { btnT.classList.remove('btn-primary'); }
   } else {
-    if (cardGrid) cardGrid.style.display = 'grid';
-    if (tableView) tableView.style.display = 'none';
-    if (btnCards) btnCards.className = 'btn btn-sm btn-primary';
-    if (btnTable) btnTable.className = 'btn btn-sm';
-    localStorage.setItem('admin_vm_view_pref', 'cards');
+    if (table) table.style.display = 'block';
+    if (cards) cards.style.display = 'none';
+    if (btnT) { btnT.classList.add('btn-primary'); }
+    if (btnC) { btnC.classList.remove('btn-primary'); }
   }
 }
 
-// Default to cards view
-(function() {
-  const pref = localStorage.getItem('admin_vm_view_pref') || 'cards';
-  setAdminVmView(pref);
-})();
+// Live Filtering Logic
+function applyServerFilters() {
+  const q = (document.getElementById('serverFilter')?.value || '').toLowerCase().trim();
+  const nodeF = document.getElementById('filterNode')?.value || '';
+  const statusF = document.getElementById('filterStatus')?.value || '';
 
-async function action(id, a) {
+  let count = 0;
+  document.querySelectorAll('.server-row').forEach(row => {
+    const text = row.getAttribute('data-search') || '';
+    const node = row.getAttribute('data-node') || '';
+    const status = row.getAttribute('data-status') || '';
+
+    const matchText = !q || text.includes(q);
+    const matchNode = !nodeF || node === nodeF;
+    const matchStatus = !statusF || status === statusF;
+
+    const visible = matchText && matchNode && matchStatus;
+    row.style.display = visible ? '' : 'none';
+    if (visible && row.tagName === 'TR') count++;
+  });
+
+  const countEl = document.getElementById('serverCount');
+  if (countEl) countEl.textContent = count;
+}
+
+document.getElementById('serverFilter')?.addEventListener('input', applyServerFilters);
+document.getElementById('filterNode')?.addEventListener('change', applyServerFilters);
+document.getElementById('filterStatus')?.addEventListener('change', applyServerFilters);
+
+// ── Mass Actions Logic (matching Pterodactyl) ───────────────────────────
+function maGetSelectedIds() {
+  return Array.from(document.querySelectorAll('.ma-server-check:checked'))
+              .map(cb => parseInt(cb.getAttribute('data-server-id'), 10));
+}
+
+function maUpdateUI() {
+  const ids = maGetSelectedIds();
+  const count = ids.length;
+  const disabled = count === 0;
+
+  const countEl = document.getElementById('ma-selected-count');
+  if (countEl) countEl.textContent = `${count} server${count === 1 ? '' : 's'} selected`;
+
+  ['ma-btn-suspend', 'ma-btn-unsuspend', 'ma-btn-delete', 'ma-btn-transfer'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = disabled;
+  });
+
+  const allCb = document.getElementById('ma-check-all');
+  if (allCb) {
+    const all = document.querySelectorAll('.ma-server-check');
+    allCb.checked = all.length > 0 && count === all.length;
+    allCb.indeterminate = count > 0 && count < all.length;
+  }
+}
+
+function maToggleAll(checked) {
+  document.querySelectorAll('.ma-server-check').forEach(cb => {
+    cb.checked = checked;
+  });
+  maUpdateUI();
+}
+
+function maSelectAll() { maToggleAll(true); }
+function maDeselectAll() { maToggleAll(false); }
+
+async function maBulkAction(action) {
+  const ids = maGetSelectedIds();
+  if (!ids.length) return;
+
+  const label = action === 'suspend' ? 'Suspending' : 'Unsuspending';
+  const resultEl = document.getElementById('ma-suspend-result');
+  if (resultEl) resultEl.innerHTML = `<span class="muted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" class="spin" style="vertical-align:-1px"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg> ${label} ${ids.length} server(s)...</span>`;
+
   try {
-    VP.toast(`Executing ${a}...`, 'info');
-    await VP.api('/admin/servers/' + id + '/action', { method: 'POST', body: { action: a } });
-    VP.toast(`Action ${a} processed`, 'success');
-    setTimeout(() => location.reload(), 700);
+    const res = await VP.api('/admin/servers/mass/action', {
+      method: 'POST',
+      body: { server_ids: ids, action }
+    });
+    const past = action === 'suspend' ? 'Suspended' : 'Unsuspended';
+    VP.toast(`${past} ${res.ok || 0} server(s) successfully`, 'success');
+    if (resultEl) resultEl.innerHTML = `<span style="color:#10b981">✔ ${past} ${res.ok || 0} server(s).</span>`;
+    setTimeout(() => location.reload(), 1000);
   } catch (e) {
+    if (resultEl) resultEl.innerHTML = `<span style="color:#ef4444">✖ ${e.message}</span>`;
     VP.toast(e.message, 'error');
   }
 }
 
-async function del(id) {
-  const ok = await VP.confirmDialog('Permanently delete this server and all its storage disks? This cannot be undone!', { title: 'Delete server?' });
+async function maConfirmDelete() {
+  const ids = maGetSelectedIds();
+  if (!ids.length) return;
+
+  const force = document.getElementById('ma-force-delete')?.checked || false;
+  const ok = await VP.confirmDialog(
+    `Permanently delete ${ids.length} selected server(s)? ${force ? 'Force mode is ENABLED.' : ''} This cannot be undone.`,
+    { title: 'Mass Delete Servers?' }
+  );
   if (!ok) return;
+
+  const resultEl = document.getElementById('ma-delete-result');
+  if (resultEl) resultEl.innerHTML = '<span class="muted">Deleting servers...</span>';
+
   try {
-    await VP.api('/admin/servers/' + id + '/action', { method: 'POST', body: { action: 'delete' } });
-    VP.toast('Server deleted', 'success');
+    const res = await VP.api('/admin/servers/mass/action', {
+      method: 'POST',
+      body: { server_ids: ids, action: 'delete', force }
+    });
+    VP.toast(`Deleted ${res.ok || 0} server(s)`, 'success');
+    if (resultEl) resultEl.innerHTML = `<span style="color:#10b981">✔ Deleted ${res.ok || 0} server(s).</span>`;
+    setTimeout(() => location.reload(), 1000);
+  } catch (e) {
+    if (resultEl) resultEl.innerHTML = `<span style="color:#ef4444">✖ ${e.message}</span>`;
+    VP.toast(e.message, 'error');
+  }
+}
+
+async function maBulkTransfer() {
+  const ids = maGetSelectedIds();
+  if (!ids.length) return;
+
+  const node_id = document.getElementById('ma-transfer-node')?.value;
+  const backups = document.getElementById('ma-transfer-backups')?.checked || false;
+
+  const ok = await VP.confirmDialog(`Transfer ${ids.length} server(s) to selected node?`, { title: 'Mass Transfer Servers?' });
+  if (!ok) return;
+
+  const resultEl = document.getElementById('ma-transfer-result');
+  if (resultEl) resultEl.innerHTML = '<span class="muted">Transferring servers...</span>';
+
+  try {
+    const res = await VP.api('/admin/servers/mass/transfer', {
+      method: 'POST',
+      body: { server_ids: ids, node_id, include_backups: backups }
+    });
+    VP.toast(`Transferred ${res.ok || 0} server(s) successfully!`, 'success');
+    if (resultEl) resultEl.innerHTML = `<span style="color:#10b981">✔ Transferred ${res.ok || 0} server(s).</span>`;
+    setTimeout(() => location.reload(), 1000);
+  } catch (e) {
+    if (resultEl) resultEl.innerHTML = `<span style="color:#ef4444">✖ ${e.message}</span>`;
+    VP.toast(e.message, 'error');
+  }
+}
+
+// Single Action Helpers
+async function serverAction(id, act) {
+  try {
+    await VP.api(`/admin/servers/${id}/action`, { method: 'POST', body: { action: act } });
+    VP.toast(`Server action '${act}' dispatched`, 'success');
     setTimeout(() => location.reload(), 800);
   } catch (e) {
     VP.toast(e.message, 'error');
   }
 }
 
-document.getElementById('serverFilter')?.addEventListener('input', function() {
-  const q = this.value.toLowerCase().trim();
-  document.querySelectorAll('.admin-card-item').forEach(el => {
-    const s = el.dataset.search ? el.dataset.search.toLowerCase() : el.textContent.toLowerCase();
-    el.style.display = s.includes(q) ? 'flex' : 'none';
-  });
-  document.querySelectorAll('.server-row').forEach(row => {
-    const s = row.dataset.search ? row.dataset.search.toLowerCase() : row.textContent.toLowerCase();
-    row.style.display = s.includes(q) ? '' : 'none';
-  });
-});
+async function quickDeleteServer(id, name) {
+  const ok = await VP.confirmDialog(`Are you sure you want to delete server "${name}"? All files will be removed permanently.`, { title: 'Delete Server?' });
+  if (!ok) return;
+  try {
+    await VP.api(`/admin/servers/${id}/action`, { method: 'POST', body: { action: 'delete' } });
+    VP.toast('Server deleted successfully', 'success');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
 </script>

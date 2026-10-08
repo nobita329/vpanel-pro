@@ -1,12 +1,65 @@
-<%- include('../partials/head', { title: target.username }) %>
+<%- include('../partials/head', { title: 'Manage User: ' + target.username }) %>
 <%- include('../partials/ambient') %>
 <%- include('../partials/topbar') %>
 <%- include('../partials/sidebar') %>
+
+<%
+  const langList = (typeof languages !== 'undefined' && languages) || {
+    en: 'English',
+    es: 'Español',
+    fr: 'Français',
+    de: 'Deutsch',
+    zh: '简体中文',
+    ja: '日本語',
+    ru: 'Русский',
+    hi: 'हिन्दी'
+  };
+  const currSymbol = (typeof currency !== 'undefined' && currency) || (typeof settings !== 'undefined' && settings && settings['billing.currency_symbol']) || '$';
+  const vmList = (typeof vms !== 'undefined' && vms) || [];
+  const sessions = (typeof activeSessions !== 'undefined' && activeSessions) || [];
+  const history = (typeof loginHistory !== 'undefined' && loginHistory) || [];
+%>
+
 <div class="main">
-  <div class="flex-between mb-3">
-    <h2 style="font-size:22px"><%= target.username %></h2>
-    <div class="flex" style="gap:8px">
-      <% if (target.id !== user.id && !target.suspended) { %>
+  <!-- Breadcrumbs -->
+  <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+    <a href="/admin" style="color:var(--text-muted);text-decoration:none">Admin</a>
+    <span>/</span>
+    <a href="/admin/users" style="color:var(--text-muted);text-decoration:none">Users</a>
+    <span>/</span>
+    <span style="color:var(--accent);font-weight:600"><%= target.username %></span>
+  </div>
+
+  <!-- Header with User Profile Summary & Quick Actions -->
+  <div class="flex-between mb-4" style="flex-wrap:wrap;gap:14px">
+    <div class="flex" style="gap:14px;align-items:center">
+      <img src="<%= target.avatar || target.gravatar || 'https://www.gravatar.com/avatar/?d=mp' %>" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--accent)"/>
+      <div>
+        <h2 style="font-size:22px;font-weight:800;margin:0;display:flex;align-items:center;gap:8px">
+          <%= (target.name_first && target.name_last) ? `${target.name_first} ${target.name_last}` : (target.name || target.username) %>
+          <small class="muted" style="font-size:14px;font-weight:500">(@<%= target.username %>)</small>
+        </h2>
+        <div style="display:flex;gap:6px;align-items:center;margin-top:4px">
+          <span class="muted text-sm"><%= target.email %></span>
+          <% if (target.root_admin || target.role === 'admin') { %>
+            <span class="pill pill-yellow font-bold" style="font-size:10px;padding:2px 8px">Administrator</span>
+          <% } else { %>
+            <span class="pill pill-blue font-bold" style="font-size:10px;padding:2px 8px">User</span>
+          <% } %>
+          <% if (target.is_banned) { %>
+            <span class="pill pill-red font-bold" style="font-size:10px;padding:2px 8px">Banned</span>
+          <% } else if (target.suspended) { %>
+            <span class="pill pill-yellow font-bold" style="font-size:10px;padding:2px 8px">Suspended</span>
+          <% } else { %>
+            <span class="pill pill-green font-bold" style="font-size:10px;padding:2px 8px">Active</span>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Header Action Buttons -->
+    <div class="flex" style="gap:8px;flex-wrap:wrap">
+      <% if (target.id !== user.id && !target.suspended && !target.is_banned) { %>
         <form method="POST" action="/admin/users/<%= target.id %>/impersonate" style="margin:0">
           <button class="btn btn-sm" type="submit" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#fbbf24;display:flex;align-items:center;gap:6px">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
@@ -14,124 +67,344 @@
           </button>
         </form>
       <% } %>
-      <% if (target.suspended) { %><button class="btn btn-sm btn-green" onclick="setField({suspended:false})">Unsuspend</button><% } else { %><button class="btn btn-sm" onclick="setField({suspended:true})">Suspend</button><% } %>
-      <% if (target.root_admin || target.role === 'admin') { %><button class="btn btn-sm" onclick="setField({role:'user'})">Demote to User</button><% } else { %><button class="btn btn-sm" onclick="setField({role:'admin'})">Promote to Admin</button><% } %>
-      <button class="btn btn-sm btn-danger" onclick="delUser()">Delete User</button>
+      <% if (target.is_banned) { %>
+        <button class="btn btn-sm btn-green" onclick="toggleBan(false)">Unban</button>
+      <% } else { %>
+        <button class="btn btn-sm btn-danger" onclick="toggleBan(true)">Ban Account</button>
+      <% } %>
+      <% if (target.suspended) { %>
+        <button class="btn btn-sm btn-green" onclick="toggleSuspend(false)">Unsuspend</button>
+      <% } else { %>
+        <button class="btn btn-sm" onclick="toggleSuspend(true)">Suspend</button>
+      <% } %>
+      <% if (target.root_admin || target.role === 'admin') { %>
+        <button class="btn btn-sm" onclick="setRole('user')">Demote to User</button>
+      <% } else { %>
+        <button class="btn btn-sm" onclick="setRole('admin')">Promote to Admin</button>
+      <% } %>
     </div>
   </div>
 
-  <div class="grid grid-2">
-    <div class="card">
-      <div class="card-title">Edit User Profile</div>
-      <div class="form-group"><label>Username</label><input id="eUser" value="<%= target.username %>"/></div>
-      <div class="form-group"><label>Email</label><input id="eEmail" value="<%= target.email %>"/></div>
-      <div class="form-group"><label>Display Name</label><input id="eName" value="<%= target.name || '' %>"/></div>
-      <div class="form-group"><label>New Password (leave blank to keep)</label><input id="ePass" type="password" placeholder="••••••••"/></div>
-      <div class="check"><input type="checkbox" id="eVerified" <%= target.verified ? 'checked' : '' %>/> Email verified</div>
-      <div class="mt-3"><button class="btn btn-primary" onclick="saveUser()">Save User Settings</button></div>
-    </div>
-
-    <!-- User Resource Limits & Quotas Card -->
-    <div class="card">
-      <div class="flex-between mb-3">
-        <div class="card-title" style="margin:0">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18"/></svg>
-          Resource Limits &amp; Quotas
-        </div>
-        <span class="pill pill-blue">Per-User Limits</span>
-      </div>
-
-      <div class="grid grid-2" style="gap:10px">
-        <div class="form-group mb-2">
-          <label>Max CPU Cores</label>
-          <input type="number" id="qCpu" value="<%= (typeof quota !== 'undefined' && quota.cpu_cores) || 8 %>" min="1" max="128"/>
-        </div>
-        <div class="form-group mb-2">
-          <label>Max RAM (MB)</label>
-          <input type="number" id="qRam" value="<%= (typeof quota !== 'undefined' && quota.ram_mb) || 8192 %>" min="256" step="512"/>
-        </div>
-        <div class="form-group mb-2">
-          <label>Max Disk (GB)</label>
-          <input type="number" id="qDisk" value="<%= (typeof quota !== 'undefined' && quota.disk_gb) || 100 %>" min="5"/>
-        </div>
-        <div class="form-group mb-2">
-          <label>Max Bandwidth (GB)</label>
-          <input type="number" id="qBw" value="<%= (typeof quota !== 'undefined' && quota.bandwidth_gb) || 1000 %>" min="10"/>
-        </div>
-        <div class="form-group mb-2">
-          <label>IPv4 Addresses</label>
-          <input type="number" id="qIpv4" value="<%= (typeof quota !== 'undefined' && quota.ipv4) || 2 %>" min="1"/>
-        </div>
-        <div class="form-group mb-2">
-          <label>Max Snapshots</label>
-          <input type="number" id="qSnapshots" value="<%= (typeof quota !== 'undefined' && quota.snapshots) || 5 %>" min="0"/>
-        </div>
-      </div>
-
-      <div class="form-group mb-2">
-        <label>Max Backups</label>
-        <input type="number" id="qBackups" value="<%= (typeof quota !== 'undefined' && quota.backups) || 10 %>" min="0"/>
-      </div>
-
-      <div class="mt-3">
-        <button class="btn btn-primary" onclick="saveQuota()">Save Resource Limits</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Virtual Machines Owned Card (Full Width) -->
-  <div class="card mt-3">
-      <div class="flex-between mb-3" style="flex-wrap:wrap;gap:8px">
-        <div class="card-title" style="margin:0">Servers Owned (<%= vms.length %>)</div>
-        <div class="flex" style="gap:6px">
-          <% if (typeof otherVms !== 'undefined' && otherVms.length > 0) { %>
-            <button type="button" class="btn btn-sm" onclick="openAssignModal()" title="Assign an existing server to this user">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
-              Assign Existing VM
-            </button>
+  <!-- Primary 2-Column Grid -->
+  <div class="grid grid-2" style="gap:20px;align-items:start">
+    <!-- Left Column: Identity & Billing -->
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <!-- Identity Card -->
+      <div class="card">
+        <div class="flex-between mb-3">
+          <div class="card-title" style="margin:0;display:flex;align-items:center;gap:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Identity
+          </div>
+          <% if (target.id !== user.id && !target.suspended && !target.is_banned) { %>
+            <form method="POST" action="/admin/users/<%= target.id %>/impersonate" style="margin:0">
+              <button class="btn btn-sm" type="submit" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.35);color:#fbbf24;font-size:11px">
+                Login as User
+              </button>
+            </form>
           <% } %>
-          <a href="/admin/servers/create?owner_id=<%= target.id %>" class="btn btn-primary btn-sm">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M12 5v14M5 12h14"/></svg>
-            Deploy VM
-          </a>
         </div>
-      </div>
 
-      <% if (vms.length === 0) { %>
-        <div class="empty" style="padding:24px">
-          <div class="muted">No virtual machines assigned to <%= target.username %> yet.</div>
-          <div class="mt-3 flex" style="justify-content:center;gap:8px">
-            <% if (typeof otherVms !== 'undefined' && otherVms.length > 0) { %>
-              <button type="button" class="btn btn-sm" onclick="openAssignModal()">Assign Existing VM</button>
-            <% } %>
-            <a href="/admin/servers/create?owner_id=<%= target.id %>" class="btn btn-sm btn-primary">Create First VM</a>
+        <div class="form-group mb-3">
+          <label>Email Address</label>
+          <input id="uEmail" type="email" value="<%= target.email %>" class="form-control" autocomplete="off"/>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Username</label>
+          <input id="uUsername" value="<%= target.username %>" class="form-control" autocomplete="off"/>
+        </div>
+
+        <div class="grid grid-2" style="gap:10px">
+          <div class="form-group mb-3">
+            <label>Client First Name</label>
+            <input id="uFirst" value="<%= target.name_first || '' %>" class="form-control" placeholder="First Name"/>
+          </div>
+          <div class="form-group mb-3">
+            <label>Client Last Name</label>
+            <input id="uLast" value="<%= target.name_last || '' %>" class="form-control" placeholder="Last Name"/>
           </div>
         </div>
-      <% } else { %>
+
+        <div class="form-group mb-3">
+          <label>Default Language</label>
+          <select id="uLang" class="form-control" style="width:100%;padding:10px;border-radius:8px">
+            <% for (const [k, v] of Object.entries(langList)) { %>
+              <option value="<%= k %>" <%= (target.language === k || (!target.language && k === 'en')) ? 'selected' : '' %>><%= v %> (<%= k %>)</option>
+            <% } %>
+          </select>
+          <small class="muted">The default language to use when rendering the panel for this user.</small>
+        </div>
+
+        <div class="mt-3">
+          <button class="btn btn-primary" onclick="saveIdentity()">Update User</button>
+        </div>
+      </div>
+
+      <!-- Billing Information Card -->
+      <div class="card">
+        <div class="card-title mb-3" style="display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          Billing Information
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Country</label>
+          <input id="bCountry" value="<%= target.country || '' %>" class="form-control" placeholder="e.g. United States"/>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Address</label>
+          <input id="bAddress" value="<%= target.address || '' %>" class="form-control" placeholder="Street Address, Suite / Apartment"/>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Zip / Postal Code</label>
+          <input id="bZip" value="<%= target.zip_code || '' %>" class="form-control" placeholder="e.g. 90210"/>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Credit Balance (<%= currSymbol %>)</label>
+          <div style="position:relative">
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-weight:700"><%= currSymbol %></span>
+            <input id="bCredit" type="number" step="0.01" min="0" value="<%= target.credit || 0 %>" class="form-control" style="padding-left:28px"/>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <button class="btn btn-primary" onclick="saveBilling()">Save Billing Info</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Password, Permissions & Account Status -->
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <!-- Password Card -->
+      <div class="card">
+        <div class="flex-between mb-3">
+          <div class="card-title" style="margin:0;display:flex;align-items:center;gap:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Password
+          </div>
+          <button type="button" class="btn btn-sm" onclick="genDetailPass()" style="font-size:11px;display:flex;align-items:center;gap:4px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            Generate Password
+          </button>
+        </div>
+
+        <div id="genDetailAlert" class="pill pill-green mb-3" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;width:100%">
+          <span style="font-weight:700">Generated Password:</span> <code id="genDetailTxt" style="font-weight:700;letter-spacing:1px;margin-left:6px;user-select:all"></code>
+        </div>
+
+        <div class="form-group mb-2">
+          <label>New Password</label>
+          <input id="uPass" type="password" class="form-control" placeholder="••••••••" autocomplete="new-password"/>
+          <small class="muted" style="display:block;margin-top:6px">Leave blank to keep this user's password the same. User will not receive an email if changed.</small>
+        </div>
+
+        <div class="mt-3">
+          <button class="btn btn-primary" onclick="savePassword()">Update Password</button>
+        </div>
+      </div>
+
+      <!-- Permissions Card -->
+      <div class="card">
+        <div class="card-title mb-3" style="display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Permissions
+        </div>
+        <div class="form-group mb-2">
+          <label>Administrator</label>
+          <select id="uRootAdmin" class="form-control" style="width:100%;padding:10px;border-radius:8px">
+            <option value="0" <%= (!target.root_admin && target.role !== 'admin') ? 'selected' : '' %>>No</option>
+            <option value="1" <%= (target.root_admin || target.role === 'admin') ? 'selected' : '' %>>Yes</option>
+          </select>
+          <small class="muted" style="display:block;margin-top:6px">Setting this to 'Yes' gives a user full administrative access.</small>
+        </div>
+        <div class="mt-3">
+          <button class="btn btn-primary" onclick="savePermissions()">Save Permissions</button>
+        </div>
+      </div>
+
+      <!-- Account Status Card -->
+      <div class="card">
+        <div class="card-title mb-3" style="display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Account Status
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Current Status</label>
+          <div>
+            <% if (target.is_banned) { %>
+              <span class="pill pill-red font-bold">Banned</span>
+              <% if (target.ban_reason) { %>
+                <div class="muted text-sm mt-1">Reason: <%= target.ban_reason %></div>
+              <% } %>
+            <% } else if (target.suspended) { %>
+              <span class="pill pill-yellow font-bold">
+                <%= target.suspended_until ? `Suspended until ${new Date(target.suspended_until).toLocaleString()}` : 'Suspended Indefinitely' %>
+              </span>
+              <% if (target.suspension_reason) { %>
+                <div class="muted text-sm mt-1">Reason: <%= target.suspension_reason %></div>
+              <% } %>
+            <% } else { %>
+              <span class="pill pill-green font-bold">Active</span>
+            <% } %>
+          </div>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Ban Account</label>
+          <select id="sIsBanned" class="form-control" style="width:100%;padding:9px;border-radius:8px">
+            <option value="0" <%= !target.is_banned ? 'selected' : '' %>>No</option>
+            <option value="1" <%= target.is_banned ? 'selected' : '' %>>Yes</option>
+          </select>
+          <small class="muted">Ban the user from logging in. This suspends access to panel and servers.</small>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Ban Reason</label>
+          <textarea id="sBanReason" class="form-control" rows="2" placeholder="Reason for account ban..."><%= target.ban_reason || '' %></textarea>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Suspend Until</label>
+          <%
+            let suspValue = '';
+            if (target.suspended_until) {
+              try {
+                const dt = new Date(target.suspended_until);
+                const pad = n => String(n).padStart(2, '0');
+                suspValue = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+              } catch (_) {}
+            }
+          %>
+          <input type="datetime-local" id="sSuspendedUntil" value="<%= suspValue %>" class="form-control"/>
+          <small class="muted">Leave blank for indefinite suspension or to remove suspension.</small>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Suspension Reason</label>
+          <textarea id="sSuspensionReason" class="form-control" rows="2" placeholder="Reason for suspension..."><%= target.suspension_reason || '' %></textarea>
+        </div>
+
+        <div class="mt-3">
+          <button class="btn btn-primary" onclick="saveStatus()">Save Account Status</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Resource Limits & Quotas Card -->
+  <div class="card mt-4">
+    <div class="flex-between mb-3">
+      <div class="card-title" style="margin:0;display:flex;align-items:center;gap:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18"/></svg>
+        Resource Limits &amp; Quotas
+      </div>
+      <span class="pill pill-blue">Per-User Limits</span>
+    </div>
+
+    <div class="grid grid-2" style="gap:12px">
+      <div class="form-group mb-2">
+        <label>Max CPU Cores</label>
+        <input type="number" id="qCpu" value="<%= (typeof quota !== 'undefined' && quota.cpu_cores) || 8 %>" min="1" max="128"/>
+      </div>
+      <div class="form-group mb-2">
+        <label>Max RAM (MB)</label>
+        <input type="number" id="qRam" value="<%= (typeof quota !== 'undefined' && quota.ram_mb) || 8192 %>" min="256" step="512"/>
+      </div>
+      <div class="form-group mb-2">
+        <label>Max Disk (GB)</label>
+        <input type="number" id="qDisk" value="<%= (typeof quota !== 'undefined' && quota.disk_gb) || 100 %>" min="5"/>
+      </div>
+      <div class="form-group mb-2">
+        <label>Max Bandwidth (GB)</label>
+        <input type="number" id="qBw" value="<%= (typeof quota !== 'undefined' && quota.bandwidth_gb) || 1000 %>" min="10"/>
+      </div>
+      <div class="form-group mb-2">
+        <label>IPv4 Addresses</label>
+        <input type="number" id="qIpv4" value="<%= (typeof quota !== 'undefined' && quota.ipv4) || 2 %>" min="1"/>
+      </div>
+      <div class="form-group mb-2">
+        <label>Max Snapshots</label>
+        <input type="number" id="qSnapshots" value="<%= (typeof quota !== 'undefined' && quota.snapshots) || 5 %>" min="0"/>
+      </div>
+    </div>
+
+    <div class="form-group mb-2 mt-2">
+      <label>Max Backups</label>
+      <input type="number" id="qBackups" value="<%= (typeof quota !== 'undefined' && quota.backups) || 10 %>" min="0"/>
+    </div>
+
+    <div class="mt-3">
+      <button class="btn btn-primary" onclick="saveQuota()">Save Resource Limits</button>
+    </div>
+  </div>
+
+  <!-- Servers Owned Card -->
+  <div class="card mt-4">
+    <div class="flex-between mb-3" style="flex-wrap:wrap;gap:8px">
+      <div class="card-title" style="margin:0;display:flex;align-items:center;gap:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
+        Servers Owned (<%= vmList.length %>)
+      </div>
+      <div class="flex" style="gap:6px">
+        <% if (typeof otherVms !== 'undefined' && otherVms.length > 0) { %>
+          <button type="button" class="btn btn-sm" onclick="openAssignModal()" title="Assign an existing server to this user">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+            Assign Existing VM
+          </button>
+        <% } %>
+        <a href="/admin/servers/create?owner_id=<%= target.id %>" class="btn btn-primary btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M12 5v14M5 12h14"/></svg>
+          Deploy VM
+        </a>
+      </div>
+    </div>
+
+    <% if (vmList.length === 0) { %>
+      <div class="empty" style="padding:24px;text-align:center">
+        <div class="muted">No virtual machines assigned to <%= target.username %> yet.</div>
+        <div class="mt-3 flex" style="justify-content:center;gap:8px">
+          <% if (typeof otherVms !== 'undefined' && otherVms.length > 0) { %>
+            <button type="button" class="btn btn-sm" onclick="openAssignModal()">Assign Existing VM</button>
+          <% } %>
+          <a href="/admin/servers/create?owner_id=<%= target.id %>" class="btn btn-sm btn-primary">Create First VM</a>
+        </div>
+      </div>
+    <% } else { %>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th>Virtual Machine</th>
+              <th>Identifier</th>
               <th>Hardware</th>
-              <th>SSH Port</th>
+              <th>Connection</th>
               <th>Status</th>
               <th class="right">Actions</th>
             </tr>
           </thead>
           <tbody>
-          <% for (const v of vms) { %>
+          <% for (const v of vmList) { %>
             <tr>
               <td>
-                <a href="/admin/servers/<%= v.id %>" style="color:#fff;font-weight:700"><%= v.name %></a>
+                <a href="/admin/servers/<%= v.id %>" style="color:#fff;font-weight:700;text-decoration:none"><%= v.name %></a>
                 <div class="muted text-sm mono" style="font-size:11px"><%= v.username %>@<%= v.hostname || 'localhost' %></div>
               </td>
-              <td><span class="muted text-sm"><%= v.cpus %> vCPU · <%= v.memory %>MB</span></td>
-              <td class="mono font-bold" style="color:var(--accent-2)">Port <%= v.ssh_port %></td>
-              <td><span class="pill <%= v.status === 'running' ? 'pill-green' : 'pill-gray' %>"><%= v.status === 'running' ? '● Online' : 'Stopped' %></span></td>
+              <td><code><%= (v.uuid || String(v.id)).slice(0, 8) %></code></td>
+              <td><span class="muted text-sm"><%= v.cpus %> vCPU · <%= v.memory %>MB · <%= v.disk || '20G' %></span></td>
+              <td class="mono font-bold" style="color:var(--accent)">Port <%= v.ssh_port %></td>
+              <td>
+                <span class="pill <%= v.status === 'running' ? 'pill-green' : 'pill-gray' %>">
+                  <%= v.status === 'running' ? '● Online' : 'Stopped' %>
+                </span>
+              </td>
               <td class="right">
                 <div class="flex right" style="gap:4px">
-                  <a class="btn btn-sm" href="/servers/<%= v.id %>/console" title="Open SSH Console">Terminal</a>
+                  <a class="btn btn-sm" href="/servers/<%= v.id %>/console" title="Open Console">Terminal</a>
                   <a class="btn btn-sm" href="/admin/servers/<%= v.id %>">Manage</a>
                 </div>
               </td>
@@ -140,40 +413,135 @@
           </tbody>
         </table>
       </div>
+    <% } %>
+  </div>
+
+  <!-- Active Sessions Card -->
+  <div class="card mt-4">
+    <div class="flex-between mb-3">
+      <div class="card-title" style="margin:0;display:flex;align-items:center;gap:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Active Sessions (<%= sessions.length %>)
+      </div>
+      <% if (sessions.length > 0) { %>
+        <button class="btn btn-sm btn-danger" onclick="revokeAllSessions()" style="font-size:11px">
+          Revoke All Sessions
+        </button>
       <% } %>
     </div>
+
+    <% if (sessions.length === 0) { %>
+      <div class="muted text-sm" style="padding:12px 0">No active login sessions recorded for this user.</div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Device</th>
+              <th>Platform</th>
+              <th>Browser</th>
+              <th>IP Address</th>
+              <th>Location</th>
+              <th>VPN</th>
+              <th>Last Active</th>
+              <th class="right"></th>
+            </tr>
+          </thead>
+          <tbody>
+          <% for (const s of sessions) { %>
+            <tr>
+              <td><%= s.device_type || 'Desktop' %></td>
+              <td><%= s.platform || 'Unknown' %></td>
+              <td><%= s.browser || 'Unknown' %></td>
+              <td><code style="font-size:12px"><%= s.ip_address || '-' %></code></td>
+              <td class="muted"><%= s.location || 'Unknown' %></td>
+              <td>
+                <span class="pill <%= s.is_vpn ? 'pill-red' : 'pill-green' %>" style="font-size:10px">
+                  <%= s.is_vpn ? 'Yes' : 'No' %>
+                </span>
+              </td>
+              <td class="muted"><%= new Date(s.last_active_at).toLocaleString() %></td>
+              <td class="right">
+                <button class="btn btn-sm btn-danger" onclick="revokeSession('<%= s.session_id %>')" style="padding:2px 8px;font-size:11px">
+                  Revoke
+                </button>
+              </td>
+            </tr>
+          <% } %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
   </div>
 
-  <div class="card mt-3">
-    <div class="card-title">Login History</div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Status</th><th>IP</th><th>When</th></tr></thead>
-        <tbody>
-        <% for (const h of loginHistory) { %>
-          <tr><td><span class="pill <%= h.status === 'success' ? 'pill-green' : 'pill-red' %>"><%= h.status %></span></td><td class="mono"><%= h.ip %></td><td class="muted"><%= new Date(h.created_at).toLocaleString() %></td></tr>
-        <% } %>
-        </tbody>
-      </table>
+  <!-- Login History (Last 50) Card -->
+  <div class="card mt-4">
+    <div class="card-title mb-3" style="display:flex;align-items:center;gap:8px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Login History (Last 50)
     </div>
+    <% if (history.length === 0) { %>
+      <div class="muted text-sm" style="padding:12px 0">No login attempts recorded yet.</div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Logged In</th>
+              <th>Status</th>
+              <th>Device</th>
+              <th>Platform</th>
+              <th>Browser</th>
+              <th>IP Address</th>
+              <th>Location</th>
+              <th>VPN</th>
+            </tr>
+          </thead>
+          <tbody>
+          <% for (const h of history) { %>
+            <tr>
+              <td class="muted text-sm"><%= new Date(h.created_at).toLocaleString() %></td>
+              <td>
+                <span class="pill <%= h.status === 'success' ? 'pill-green' : 'pill-red' %>" style="font-size:11px">
+                  <%= h.status %>
+                </span>
+              </td>
+              <td><%= h.device_type || 'Desktop' %></td>
+              <td><%= h.platform || 'Unknown' %></td>
+              <td><%= h.browser || 'Unknown' %></td>
+              <td><code style="font-size:12px"><%= h.ip || '-' %></code></td>
+              <td class="muted"><%= h.location || 'Local / Private' %></td>
+              <td>
+                <span class="pill <%= h.is_vpn ? 'pill-red' : 'pill-green' %>" style="font-size:10px">
+                  <%= h.is_vpn ? 'Yes' : 'No' %>
+                </span>
+              </td>
+            </tr>
+          <% } %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
   </div>
 
-  <div class="card mt-3">
-    <div class="card-title">Activity</div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Event</th><th>Details</th><th>IP</th><th>When</th></tr></thead>
-        <tbody>
-        <% for (const a of logs) { %>
-          <tr>
-            <td><span class="pill pill-blue"><%= a.event %></span></td>
-            <td class="muted truncate" style="max-width:320px"><%= a.details ? JSON.stringify(a.details) : '-' %></td>
-            <td class="muted"><%= a.ip || '-' %></td>
-            <td class="muted"><%= new Date(a.created_at).toLocaleString() %></td>
-          </tr>
-        <% } %>
-        </tbody>
-      </table>
+  <!-- Delete User Danger Zone Card -->
+  <div class="card mt-4" style="border:1px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.03)">
+    <div class="flex-between" style="flex-wrap:wrap;gap:12px">
+      <div>
+        <h4 style="color:#ef4444;font-size:16px;font-weight:700;margin:0 0 4px 0">Delete User</h4>
+        <p class="muted text-sm" style="margin:0">
+          There must be no servers associated with this account in order for it to be deleted.
+          <% if (vmList.length > 0) { %>
+            <span style="color:#f59e0b;font-weight:600"> (Currently owns <%= vmList.length %> VM<%= vmList.length > 1 ? 's' : '' %>)</span>
+          <% } %>
+        </p>
+      </div>
+      <div>
+        <button class="btn btn-danger" onclick="delUser('<%= vmList.length %>')" <%= vmList.length > 0 ? 'disabled' : '' %> style="display:flex;align-items:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Delete User
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -188,7 +556,7 @@
         <button type="button" class="btn btn-sm" onclick="closeAssignModal()">✕</button>
       </div>
       <p class="muted text-sm mb-3">Select any existing virtual machine to transfer and assign its ownership to <strong><%= target.username %></strong>.</p>
-      
+
       <div class="form-group mb-4">
         <label>Select Virtual Machine</label>
         <select id="assignVmSelect" style="width:100%;padding:10px;border-radius:8px">
@@ -216,6 +584,17 @@
 <script>
 function val(id) { return document.getElementById(id).value; }
 
+function genDetailPass() {
+  const chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*';
+  let pass = '';
+  for (let i = 0; i < 14; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+  document.getElementById('uPass').value = pass;
+  document.getElementById('uPass').type = 'text';
+  document.getElementById('genDetailTxt').textContent = pass;
+  document.getElementById('genDetailAlert').style.display = 'block';
+  VP.toast('Password generated and filled', 'success');
+}
+
 function openAssignModal() {
   const m = document.getElementById('assignModal');
   if (m) m.style.display = 'block';
@@ -229,30 +608,146 @@ function closeAssignModal() {
 async function submitAssignVm() {
   const vmSelect = document.getElementById('assignVmSelect');
   if (!vmSelect || !vmSelect.value) return;
-  const vmId = vmSelect.value;
   try {
-    const res = await fetch('/admin/users/<%= target.id %>/assign-vm', {
+    const res = await VP.api('/admin/users/<%= target.id %>/assign-vm', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + vpToken() },
-      body: JSON.stringify({ vm_id: vmId })
+      body: { vm_id: vmSelect.value }
     });
-    const d = await res.json();
-    if (!res.ok || !d.ok) throw new Error(d.error || 'Failed to assign VM');
     VP.toast('VM assigned to <%= target.username %> successfully!', 'success');
-    setTimeout(() => location.reload(), 700);
+    setTimeout(() => location.reload(), 600);
   } catch (e) {
     VP.toast(e.message, 'error');
   }
 }
 
-async function saveUser() {
-  const body = { username: val('eUser'), email: val('eEmail'), name: val('eName'), verified: document.getElementById('eVerified').checked };
-  if (val('ePass')) body.password = val('ePass');
+async function saveIdentity() {
+  const body = {
+    email: val('uEmail').trim(),
+    username: val('uUsername').trim(),
+    name_first: val('uFirst').trim(),
+    name_last: val('uLast').trim(),
+    language: val('uLang'),
+  };
   try {
     await VP.api('/admin/users/<%= target.id %>/update', { method: 'POST', body });
-    VP.toast('User updated', 'success');
-    setTimeout(() => location.reload(), 700);
-  } catch (e) { VP.toast(e.message, 'error'); }
+    VP.toast('Identity settings saved successfully', 'success');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+async function saveBilling() {
+  const body = {
+    country: val('bCountry').trim(),
+    address: val('bAddress').trim(),
+    zip_code: val('bZip').trim(),
+    credit: parseFloat(val('bCredit')) || 0,
+  };
+  try {
+    await VP.api('/admin/users/<%= target.id %>/update', { method: 'POST', body });
+    VP.toast('Billing information updated successfully', 'success');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+async function savePassword() {
+  const password = val('uPass');
+  if (!password || password.length < 6) {
+    return VP.toast('Password must be at least 6 characters', 'error');
+  }
+  try {
+    await VP.api('/admin/users/<%= target.id %>/update', { method: 'POST', body: { password } });
+    VP.toast('Password updated successfully', 'success');
+    document.getElementById('uPass').value = '';
+    document.getElementById('genDetailAlert').style.display = 'none';
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+async function savePermissions() {
+  const root_admin = parseInt(val('uRootAdmin'), 10);
+  try {
+    await VP.api('/admin/users/<%= target.id %>/update', {
+      method: 'POST',
+      body: { root_admin, role: root_admin ? 'admin' : 'user' }
+    });
+    VP.toast('Permissions updated successfully', 'success');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+async function saveStatus() {
+  const is_banned = parseInt(val('sIsBanned'), 10) === 1;
+  const ban_reason = val('sBanReason').trim();
+  const rawSuspUntil = val('sSuspendedUntil');
+  const suspension_reason = val('sSuspensionReason').trim();
+
+  let suspended_until = null;
+  let suspended = false;
+  if (rawSuspUntil) {
+    suspended_until = new Date(rawSuspUntil).toISOString();
+    suspended = true;
+  } else if (suspension_reason) {
+    suspended = true;
+  }
+
+  try {
+    await VP.api('/admin/users/<%= target.id %>/status', {
+      method: 'POST',
+      body: { is_banned, ban_reason, suspended, suspended_until, suspension_reason }
+    });
+    VP.toast('Account status updated', 'success');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+async function toggleBan(ban) {
+  const reason = ban ? prompt('Enter reason for ban (optional):', '') : '';
+  if (ban && reason === null) return;
+  try {
+    await VP.api('/admin/users/<%= target.id %>/ban', {
+      method: 'POST',
+      body: { ban, ban_reason: reason || '' }
+    });
+    VP.toast(ban ? 'Account banned' : 'Account unbanned', 'success');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+async function toggleSuspend(suspend) {
+  try {
+    await VP.api('/admin/users/<%= target.id %>/suspend', {
+      method: 'POST',
+      body: { suspend }
+    });
+    VP.toast(suspend ? 'User suspended' : 'User unsuspended', 'success');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+async function setRole(role) {
+  try {
+    await VP.api('/admin/users/<%= target.id %>/update', {
+      method: 'POST',
+      body: { role, root_admin: role === 'admin' ? 1 : 0 }
+    });
+    VP.toast('User role changed to ' + role, 'success');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
 }
 
 async function saveQuota() {
@@ -268,21 +763,48 @@ async function saveQuota() {
   try {
     await VP.api('/admin/users/<%= target.id %>/quota', { method: 'POST', body });
     VP.toast('Resource limits & quotas saved successfully!', 'success');
-  } catch (e) { VP.toast(e.message, 'error'); }
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
 }
-async function setField(body) {
+
+async function revokeSession(sid) {
+  const ok = await VP.confirmDialog('Revoke this login session?', { title: 'Revoke Session' });
+  if (!ok) return;
   try {
-    await VP.api('/admin/users/<%= target.id %>/update', { method: 'POST', body });
-    location.reload();
-  } catch (e) { VP.toast(e.message, 'error'); }
+    await VP.api('/admin/users/<%= target.id %>/sessions/' + sid + '/revoke', { method: 'POST' });
+    VP.toast('Session revoked', 'success');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
 }
-async function delUser() {
-  const ok = await VP.confirmDialog('Delete <%= target.username %>? This removes their servers and data.', { title: 'Delete user?' });
+
+async function revokeAllSessions() {
+  const ok = await VP.confirmDialog('Revoke ALL active login sessions for this user?', { title: 'Revoke All Sessions' });
+  if (!ok) return;
+  try {
+    await VP.api('/admin/users/<%= target.id %>/sessions/revoke-all', { method: 'POST' });
+    VP.toast('All sessions revoked', 'success');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+async function delUser(vmCount) {
+  const count = parseInt(vmCount, 10) || 0;
+  if (count > 0) {
+    return VP.toast(`Cannot delete user: They still own ${count} virtual machine(s).`, 'error');
+  }
+  const ok = await VP.confirmDialog('Delete <%= target.username %>? This action is permanent.', { title: 'Delete User?' });
   if (!ok) return;
   try {
     await VP.api('/admin/users/<%= target.id %>/delete', { method: 'POST' });
-    VP.toast('User deleted', 'success');
-    setTimeout(() => location.href = '/admin/users', 700);
-  } catch (e) { VP.toast(e.message, 'error'); }
+    VP.toast('User deleted successfully', 'success');
+    setTimeout(() => location.href = '/admin/users', 600);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
 }
 </script>

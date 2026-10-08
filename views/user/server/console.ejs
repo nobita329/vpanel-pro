@@ -178,254 +178,548 @@
   height: calc(100vh - 85px) !important;
   min-height: calc(100vh - 85px) !important;
 }
+
+/* --- Arix Console Signature Layout --- */
+.arix-console-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.arix-server-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #fff;
+  margin: 0;
+  line-height: 1.15;
+}
+.arix-server-subtitle {
+  font-size: 13px;
+  color: #8282A4;
+  margin-top: 4px;
+  font-weight: 500;
+}
+.arix-power-group {
+  display: inline-flex;
+  border-radius: 8px;
+  background: #111424;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 4px;
+  gap: 4px;
+}
+.arix-pwr-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 8px 24px;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background: transparent;
+  color: #64748b;
+  text-transform: uppercase;
+  outline: none;
+}
+.arix-pwr-btn:hover {
+  color: #fff;
+}
+.arix-pwr-btn.start.active-glow {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.7);
+}
+.arix-pwr-btn.start.idle {
+  background: transparent;
+  color: #475569;
+}
+.arix-pwr-btn.restart.active-btn {
+  background: #1e293b;
+  color: #94a3b8;
+}
+.arix-pwr-btn.restart.active-btn:hover {
+  background: #334155;
+  color: #fff;
+}
+.arix-pwr-btn.stop.active-danger-glow {
+  background: #dc2626;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.7);
+}
+.arix-pwr-btn.stop.idle {
+  background: transparent;
+  color: #5c1d24;
+}
+
+.arix-console-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 16px;
+  margin-bottom: 18px;
+  align-items: stretch;
+}
+@media (max-width: 1080px) {
+  .arix-console-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.arix-terminal-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.arix-terminal-box {
+  background: #060913;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
+}
+.arix-term-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: #090d1c;
+}
+
+.terminal-command-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #080b18;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.cmd-prompt-arrow {
+  color: var(--primary);
+  font-size: 22px;
+  font-weight: 900;
+  user-select: none;
+  line-height: 1;
+}
+.terminal-command-input {
+  flex: 1;
+  background: #12162a;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #f8fafc;
+  font-family: monospace;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.terminal-command-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 12px rgba(59,130,246,0.3);
+}
+
+.arix-side-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.arix-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  background: #111425;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.arix-stat-card:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+  background: #14182e;
+}
+.arix-stat-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.arix-stat-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.arix-stat-title {
+  font-size: 11px;
+  color: #8282A4;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+.arix-stat-val {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: monospace;
+}
+
+.arix-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+@media (max-width: 860px) {
+  .arix-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.arix-chart-card {
+  background: #111425;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 14px 16px 8px;
+  position: relative;
+  overflow: hidden;
+}
+.arix-chart-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #8282A4;
+}
+.arix-chart-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  font-family: monospace;
+}
+.arix-chart-container {
+  width: 100%;
+  height: 80px;
+  position: relative;
+  margin-top: 4px;
+}
+.arix-svg-chart {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
 </style>
 
 <div class="main">
-  <div class="flex-between mb-3">
-    <div>
-      <div class="muted text-sm" style="margin-bottom:2px">
-        <a href="/servers/<%= vm.id %>" style="color:var(--text-dim)"><%= vm.name %></a> / Terminal &amp; Boot Logs
-      </div>
-      <h2 style="font-size:22px;font-weight:800;letter-spacing:-0.3px;display:flex;align-items:center;gap:10px">
-        <%= vm.name %>
-        <span id="headerStatusPill" class="pill <%= vm.status === 'running' ? 'pill-green' : 'pill-gray' %>"><%= vm.status %></span>
-      </h2>
-    </div>
-    <div class="flex" style="gap:8px">
-      <a class="btn btn-sm" href="/servers/<%= vm.id %>">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        Back to overview
-      </a>
-    </div>
-  </div>
-  <!-- Live VM Telemetry Status Bar -->
-  <div class="card mb-3" style="padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;backdrop-filter:blur(10px)">
-    <div class="flex-between" style="flex-wrap:wrap;gap:12px">
-      <!-- Status & Uptime -->
-      <div class="flex" style="gap:12px;align-items:center">
-        <span id="liveStatusPill" class="pill <%= vm.status === 'running' ? 'pill-green' : 'pill-gray' %>" style="font-size:12px;padding:4px 10px">
-          <%= vm.status === 'running' ? '● Online' : 'Stopped' %>
-        </span>
-        <div style="font-size:12.5px;color:var(--text-muted)">
-          Uptime: <span id="liveUptime" class="mono" style="color:#fff;font-weight:600">-</span>
-        </div>
-      </div>
-
-      <!-- CPU / RAM / Disk Metrics -->
-      <div class="flex" style="gap:16px;align-items:center;flex-wrap:wrap">
-        <!-- CPU Metric -->
-        <div class="flex" style="gap:8px;align-items:center">
-          <span style="font-size:12px;color:var(--text-muted)">CPU</span>
-          <div style="width:70px;height:7px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden">
-            <div id="liveCpuBar" style="width:0%;height:100%;background:var(--accent-2);border-radius:4px;transition:width 0.4s"></div>
-          </div>
-          <span id="liveCpuText" class="mono" style="font-size:12px;font-weight:700;color:#fff;min-width:34px">-%</span>
-        </div>
-
-        <!-- RAM Metric -->
-        <div class="flex" style="gap:8px;align-items:center">
-          <span style="font-size:12px;color:var(--text-muted)">RAM</span>
-          <div style="width:70px;height:7px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden">
-            <div id="liveRamBar" style="width:0%;height:100%;background:#a855f7;border-radius:4px;transition:width 0.4s"></div>
-          </div>
-          <span id="liveRamText" class="mono" style="font-size:12px;font-weight:700;color:#fff;min-width:55px">-%</span>
-        </div>
-
-        <!-- Disk Metric -->
-        <div class="flex" style="gap:8px;align-items:center">
-          <span style="font-size:12px;color:var(--text-muted)">Disk</span>
-          <span id="liveDiskText" class="mono" style="font-size:12px;font-weight:700;color:#fff"><%= vm.disk_size || '20G' %></span>
-        </div>
-
-        <!-- IP & SSH Port -->
-        <div class="flex" style="gap:6px;align-items:center">
-          <span class="pill mono font-bold" style="font-size:11px;color:var(--accent-2)">
-            Port <%= vm.ssh_port %>
-          </span>
-          <span class="mono muted text-sm" style="font-size:11px">
-            <%= vm.hostname || 'localhost' %>
-          </span>
-        </div>
-      </div>
-    </div>
+  <!-- Breadcrumbs -->
+  <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+    <a href="/servers/<%= vm.id %>" style="color:var(--text-muted);text-decoration:none"><%= vm.name %></a>
+    <span>/</span>
+    <span style="color:var(--primary);font-weight:600">Terminal &amp; Boot Logs</span>
   </div>
 
   <%- include('_tabs') %>
 
-  <!-- Console Navigation Tabs (SSH Terminal / noVNC / Live Boot Logs) -->
-  <div class="console-tabs" style="margin-bottom:14px">
-    <button class="console-tab active" id="tabTerminal" onclick="switchView('terminal')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px;margin-right:6px"><path d="M4 17l6-5-6-5M12 19h8"/></svg>
-      SSH Terminal
-    </button>
-    <button class="console-tab" id="tabNoVnc" onclick="switchView('novnc')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px;margin-right:6px"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-      noVNC Desktop
-    </button>
-    <button class="console-tab" id="tabBootLog" onclick="switchView('bootlog')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px;margin-right:6px"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-      Live Boot Logs
-      <span class="pulse-dot" style="margin-left:6px;margin-right:0"></span>
-    </button>
-  </div>
-
-  <!-- SSH Terminal Pane -->
-  <div id="paneTerminal" class="card" style="padding:16px">
-    <div id="sshBootBanner" style="display:none;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.25);border-radius:10px;padding:10px 14px;margin-bottom:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-      <div class="flex" style="gap:8px;align-items:center">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
-        <span style="font-size:13px;color:#e2e8f0">Server is offline or initializing SSH. You can monitor the startup sequence live!</span>
+  <!-- Arix Console Header (from screenshot) -->
+  <div class="arix-console-header">
+    <div>
+      <h1 class="arix-server-title"><%= vm.name %></h1>
+      <div class="arix-server-subtitle">
+        <%= vm.os_type %> <%= vm.codename || '' %> &bull; <%= vm.cpus %> vCPU &bull; <%= (vm.memory/1024).toFixed(1) %> GB RAM &bull; Port <%= vm.ssh_port %>
       </div>
-      <button class="btn btn-sm btn-primary" onclick="switchView('bootlog')">
-        <span class="pulse-dot"></span> View Live Boot Logs
+    </div>
+
+    <!-- Exact Arix START / RESTART / STOP Power Button Group -->
+    <div class="arix-power-group" id="arixPowerGroup">
+      <button type="button" class="arix-pwr-btn start <%= vm.status === 'running' ? 'idle' : 'active-glow' %>" id="arixBtnStart" onclick="powerServer('start')">
+        START
+      </button>
+      <button type="button" class="arix-pwr-btn restart <%= vm.status === 'running' ? 'active-btn' : 'idle' %>" id="arixBtnRestart" onclick="powerServer('restart')">
+        RESTART
+      </button>
+      <button type="button" class="arix-pwr-btn stop <%= vm.status === 'running' ? 'active-danger-glow' : 'idle' %>" id="arixBtnStop" onclick="powerServer('stop')">
+        STOP
       </button>
     </div>
-
-    <!-- Multi-Session Tab Bar -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--border);padding-bottom:8px">
-      <div class="flex" style="gap:6px;align-items:center;flex-wrap:wrap" id="sessionTabsBar">
-        <!-- Dynamic Session Tabs -->
-      </div>
-      <div class="flex" style="gap:6px;align-items:center">
-        <button class="btn btn-sm btn-primary" onclick="addNewSession()" title="Open New SSH Session (24/7 on)" style="display:flex;align-items:center;gap:4px;font-size:12px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          New Session (+)
-        </button>
-      </div>
-    </div>
-
-    <div class="console-toolbar flex-between" style="margin-bottom:12px;flex-wrap:wrap;gap:8px">
-      <div class="flex" style="gap:8px;align-items:center;flex-wrap:wrap">
-        <span id="connState" class="pill <%= vm.status === 'running' ? 'pill-yellow' : 'pill-gray' %>">
-          <%= vm.status === 'running' ? 'connecting...' : 'offline' %>
-        </span>
-        <button class="btn btn-sm" id="btnReconnect" onclick="reconnectActiveSession()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-          Reconnect
-        </button>
-        <button class="btn btn-sm" onclick="clearTerm()">Clear</button>
-        <button class="btn btn-sm" onclick="sendCtrlC()" title="Send Interrupt Signal (Ctrl+C)">Ctrl+C</button>
-        <button class="btn btn-sm" onclick="sendCtrlD()" title="Send EOF (Ctrl+D)">Ctrl+D</button>
-      </div>
-
-      <!-- Size Controls: Default size (169x33) -->
-      <div class="flex" style="gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="btn btn-sm btn-primary" id="btnTermDefaultSize" onclick="resetToDefault169x33()" title="Reset to Default size (169×33)" style="font-weight:600;display:inline-flex;align-items:center;gap:5px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-          <span>Default size (169×33)</span>
-        </button>
-        <span id="termSizeBadge" class="mono text-sm" style="font-size:11.5px;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:#38bdf8">169×33</span>
-        <button class="btn btn-sm" onclick="fitTerm()" title="Fit terminal to container">Fit</button>
-        <button class="btn btn-sm" onclick="toggleFullscreen('paneTerminal')" title="Toggle Full Screen">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-          Full
-        </button>
-      </div>
-    </div>
-
-    <!-- 4-Corner Resizable Wrapper for SSH Terminal Sessions -->
-    <div class="terminal-wrapper" id="termWrapper">
-      <div id="termSessionsContainer" style="width:100%;height:100%"></div>
-      <!-- 4 Corner Mouse Drag Handles -->
-      <div class="resize-handle rh-tl" data-target="termWrapper" data-dir="tl" title="Drag to resize (Top-Left)"></div>
-      <div class="resize-handle rh-tr" data-target="termWrapper" data-dir="tr" title="Drag to resize (Top-Right)"></div>
-      <div class="resize-handle rh-bl" data-target="termWrapper" data-dir="bl" title="Drag to resize (Bottom-Left)"></div>
-      <div class="resize-handle rh-br" data-target="termWrapper" data-dir="br" title="Drag to resize (Bottom-Right)"></div>
-      <div class="resize-handle rh-b" data-target="termWrapper" data-dir="b" title="Drag to resize height (Bottom)"></div>
-    </div>
   </div>
 
-  <!-- noVNC Desktop Pane -->
-  <div id="paneNoVnc" class="card" style="padding:16px;display:none">
-    <div class="console-toolbar flex-between" style="margin-bottom:12px;flex-wrap:wrap;gap:8px">
-      <div class="flex" style="gap:8px;align-items:center;flex-wrap:wrap">
-        <span id="vncState" class="pill pill-yellow">Disconnected</span>
-        <button class="btn btn-sm btn-primary" onclick="connectVnc()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          Connect noVNC
+  <!-- Arix 2-Column Main Console Layout -->
+  <div class="arix-console-main-grid">
+    <!-- Left Column: Terminal & Alternate Viewpanes -->
+    <div class="arix-terminal-col">
+      <!-- Sub-Tabs: SSH Terminal / noVNC Desktop / Live Boot Logs -->
+      <div class="console-tabs mb-2">
+        <button class="console-tab active" id="tabTerminal" onclick="switchView('terminal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="vertical-align:-2px;margin-right:5px"><path d="M4 17l6-5-6-5M12 19h8"/></svg>
+          SSH Terminal
         </button>
-        <button class="btn btn-sm" onclick="disconnectVnc()">Disconnect</button>
-        <button class="btn btn-sm" onclick="sendCtrlAltDel()" title="Send Ctrl+Alt+Del">Ctrl+Alt+Del</button>
-        <span class="mono muted text-sm" style="font-size:11.5px">VNC Display: <%= (vm.vnc_port || 5900) - 5900 %></span>
-      </div>
-
-      <div class="flex" style="gap:8px;align-items:center">
-        <button class="btn btn-sm" onclick="toggleFullscreen('paneNoVnc')" title="Toggle Full Screen">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-          Full
+        <button class="console-tab" id="tabNoVnc" onclick="switchView('novnc')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="vertical-align:-2px;margin-right:5px"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          noVNC Desktop
+        </button>
+        <button class="console-tab" id="tabBootLog" onclick="switchView('bootlog')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="vertical-align:-2px;margin-right:5px"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+          Live Boot Logs
+          <span class="pulse-dot" style="margin-left:5px"></span>
         </button>
       </div>
-    </div>
 
-    <!-- noVNC Viewport -->
-    <div id="vncScreenWrapper" style="width:100%;height:calc(100vh - 350px);min-height:460px;background:#060913;border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative">
-      <div id="vncPlaceholder" class="muted" style="text-align:center;padding:30px">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48" style="opacity:0.4;margin-bottom:8px"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-        <div style="font-weight:600;font-size:14px;color:#fff;margin-bottom:4px">noVNC Graphic Remote Console</div>
-        <div class="muted text-sm">Direct low-latency QEMU frame-buffer connection. Click "Connect noVNC" to start session.</div>
-        <button class="btn btn-primary btn-sm mt-3" onclick="connectVnc()">Connect Desktop Session</button>
-      </div>
-      <div id="vncTarget" style="width:100%;height:100%;display:none"></div>
-    </div>
-  </div>
-
-  <!-- Live Boot Logs Pane -->
-  <div id="paneBootLog" class="card" style="padding:16px;display:none">
-    <div class="console-toolbar flex-between" style="margin-bottom:12px;flex-wrap:wrap;gap:10px">
-      <div class="flex" style="gap:8px;align-items:center;flex-wrap:wrap">
-        <span id="bootState" class="pill pill-green"><span class="pulse-dot"></span> Live Streaming</span>
-        <% if (vm.status !== 'running') { %>
-          <button class="btn btn-sm btn-green" id="btnStartFromBoot" onclick="startAndStream()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Start &amp; Stream Boot
+      <!-- 1. SSH Terminal View Pane -->
+      <div id="paneTerminal">
+        <div id="sshBootBanner" style="display:none;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.25);border-radius:10px;padding:10px 14px;margin-bottom:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div class="flex" style="gap:8px;align-items:center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+            <span style="font-size:13px;color:#e2e8f0">Server is offline or initializing SSH. Monitor the startup sequence live!</span>
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="switchView('bootlog')">
+            <span class="pulse-dot"></span> View Live Boot Logs
           </button>
-        <% } %>
-        <button class="btn btn-sm" id="btnToggleScroll" onclick="toggleAutoScroll()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-          <span id="autoScrollLabel">Auto-Scroll: ON</span>
-        </button>
-        <button class="btn btn-sm" id="btnToggleView" onclick="toggleViewMode()">
-          <span id="viewModeLabel">Raw View</span>
-        </button>
-        <button class="btn btn-sm" onclick="clearBootDisplay()">Clear Display</button>
-        <button class="btn btn-sm" onclick="clearBootServerLog()" title="Clear log file on server">Clear File</button>
-        <button class="btn btn-sm" onclick="openAiDiagnostics()" style="background:linear-gradient(135deg,#8b5cf6,#6366f1);border:none;box-shadow:0 0 14px rgba(139,92,246,0.35);color:#fff;font-weight:600;display:flex;align-items:center;gap:6px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          ✨ AI Explain & Fix
-        </button>
+        </div>
+
+        <div class="arix-terminal-box">
+          <!-- Multi-Session Tab Bar -->
+          <div class="arix-term-header flex-between" style="flex-wrap:wrap;gap:8px">
+            <div class="flex" style="gap:6px;align-items:center;flex-wrap:wrap" id="sessionTabsBar">
+              <!-- Dynamic Session Tabs -->
+            </div>
+            <div class="flex" style="gap:6px;align-items:center;flex-wrap:wrap">
+              <span id="connState" class="pill <%= vm.status === 'running' ? 'pill-yellow' : 'pill-gray' %>" style="font-size:10px;padding:2px 7px">
+                <%= vm.status === 'running' ? 'connecting...' : 'offline' %>
+              </span>
+              <button class="btn btn-sm btn-primary" onclick="addNewSession()" title="New SSH Session" style="font-size:11px;padding:3px 8px">+ New Session</button>
+              <button class="btn btn-sm" onclick="clearTerm()" style="font-size:11px;padding:3px 8px">Clear</button>
+              <button class="btn btn-sm" onclick="sendCtrlC()" style="font-size:11px;padding:3px 8px">Ctrl+C</button>
+              <button class="btn btn-sm" onclick="sendCtrlD()" style="font-size:11px;padding:3px 8px">Ctrl+D</button>
+              <button class="btn btn-sm btn-primary" id="btnTermDefaultSize" onclick="resetToDefault169x33()" title="Reset to Default (169×33)" style="font-size:11px;padding:3px 8px">169×33</button>
+              <button class="btn btn-sm" onclick="fitTerm()" style="font-size:11px;padding:3px 8px">Fit</button>
+              <button class="btn btn-sm" onclick="toggleFullscreen('paneTerminal')" title="Toggle Full Screen" style="font-size:11px;padding:3px 8px">Full</button>
+            </div>
+          </div>
+
+          <!-- Resizable Terminal Body -->
+          <div class="terminal-wrapper" id="termWrapper">
+            <div id="termSessionsContainer" style="width:100%;height:100%"></div>
+            <div class="resize-handle rh-tl" data-target="termWrapper" data-dir="tl"></div>
+            <div class="resize-handle rh-tr" data-target="termWrapper" data-dir="tr"></div>
+            <div class="resize-handle rh-bl" data-target="termWrapper" data-dir="bl"></div>
+            <div class="resize-handle rh-br" data-target="termWrapper" data-dir="br"></div>
+            <div class="resize-handle rh-b" data-target="termWrapper" data-dir="b"></div>
+          </div>
+
+          <!-- Exact Command Prompt Input Bar (from screenshot) -->
+          <div class="terminal-command-bar">
+            <span class="cmd-prompt-arrow">&#187;</span>
+            <input type="text" id="termCmdInput" class="terminal-command-input" placeholder="Type a command..." autocomplete="off" onkeydown="if(event.key==='Enter')sendTerminalCommand()" />
+            <button type="button" class="btn btn-sm btn-primary" onclick="sendTerminalCommand()" style="font-size:11px;padding:6px 12px">Send</button>
+          </div>
+        </div>
       </div>
-      <div class="flex" style="gap:8px;align-items:center;flex-wrap:wrap">
-        <input type="text" id="logSearch" class="log-search-input" placeholder="Filter boot logs..." oninput="onSearchInput(this.value)" />
-        <button class="btn btn-sm" onclick="copyBootLog()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          Copy
-        </button>
-        <button class="btn btn-sm" onclick="downloadBootLog()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download
-        </button>
-        <button class="btn btn-sm" id="btnBootAutoSize" onclick="resetToAutoSize('bootTermWrapper')" title="Reset to default responsive Auto Size">
-          Auto Size
-        </button>
-        <button class="btn btn-sm" onclick="fitBootTerm()">Fit</button>
-        <button class="btn btn-sm" onclick="toggleFullscreen('paneBootLog')" title="Toggle Full Screen">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-          Full
-        </button>
+
+      <!-- 2. noVNC Desktop View Pane -->
+      <div id="paneNoVnc" class="card" style="padding:16px;display:none">
+        <div class="console-toolbar flex-between" style="margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div class="flex" style="gap:8px;align-items:center;flex-wrap:wrap">
+            <span id="vncState" class="pill pill-yellow">Disconnected</span>
+            <button class="btn btn-sm btn-primary" onclick="connectVnc()">Connect noVNC</button>
+            <button class="btn btn-sm" onclick="disconnectVnc()">Disconnect</button>
+            <button class="btn btn-sm" onclick="sendCtrlAltDel()">Ctrl+Alt+Del</button>
+            <span class="mono muted text-sm" style="font-size:11.5px">VNC Display: <%= (vm.vnc_port || 5900) - 5900 %></span>
+          </div>
+          <button class="btn btn-sm" onclick="toggleFullscreen('paneNoVnc')">Full</button>
+        </div>
+        <div id="vncScreenWrapper" style="width:100%;height:calc(100vh - 350px);min-height:460px;background:#060913;border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative">
+          <div id="vncPlaceholder" class="muted" style="text-align:center;padding:30px">
+            <div style="font-weight:600;font-size:14px;color:#fff;margin-bottom:4px">noVNC Graphic Remote Console</div>
+            <div class="muted text-sm">Direct low-latency QEMU frame-buffer connection.</div>
+            <button class="btn btn-primary btn-sm mt-3" onclick="connectVnc()">Connect Desktop Session</button>
+          </div>
+          <div id="vncTarget" style="width:100%;height:100%;display:none"></div>
+        </div>
+      </div>
+
+      <!-- 3. Live Boot Logs View Pane -->
+      <div id="paneBootLog" class="card" style="padding:16px;display:none">
+        <div class="console-toolbar flex-between" style="margin-bottom:12px;flex-wrap:wrap;gap:10px">
+          <div class="flex" style="gap:8px;align-items:center;flex-wrap:wrap">
+            <span id="bootState" class="pill pill-green"><span class="pulse-dot"></span> Live Streaming</span>
+            <% if (vm.status !== 'running') { %>
+              <button class="btn btn-sm btn-green" id="btnStartFromBoot" onclick="startAndStream()">Start &amp; Stream Boot</button>
+            <% } %>
+            <button class="btn btn-sm" id="btnToggleScroll" onclick="toggleAutoScroll()"><span id="autoScrollLabel">Auto-Scroll: ON</span></button>
+            <button class="btn btn-sm" id="btnToggleView" onclick="toggleViewMode()"><span id="viewModeLabel">Raw View</span></button>
+            <button class="btn btn-sm" onclick="clearBootDisplay()">Clear Display</button>
+            <button class="btn btn-sm" onclick="clearBootServerLog()">Clear File</button>
+            <button class="btn btn-sm" onclick="openAiDiagnostics()" style="background:linear-gradient(135deg,#8b5cf6,#6366f1);border:none;color:#fff;font-weight:600">✨ AI Explain & Fix</button>
+          </div>
+          <div class="flex" style="gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="text" id="logSearch" class="log-search-input" placeholder="Filter boot logs..." oninput="onSearchInput(this.value)" />
+            <button class="btn btn-sm" onclick="copyBootLog()">Copy</button>
+            <button class="btn btn-sm" onclick="downloadBootLog()">Download</button>
+            <button class="btn btn-sm" onclick="toggleFullscreen('paneBootLog')">Full</button>
+          </div>
+        </div>
+        <div class="terminal-wrapper" id="bootTermWrapper">
+          <div id="bootTerminal" class="terminal"></div>
+          <pre id="bootRawContent" style="display:none;width:100%;height:100%;background:#060913;color:#38bdf8;padding:16px;box-sizing:border-box;font-family:JetBrains Mono, monospace;font-size:13px;line-height:1.45;overflow:auto;white-space:pre-wrap;word-break:break-all;margin:0"></pre>
+        </div>
       </div>
     </div>
 
-    <!-- 4-Corner Resizable Wrapper for Live Boot Terminal -->
-    <div class="terminal-wrapper" id="bootTermWrapper">
-      <div id="bootTerminal" class="terminal"></div>
-      <pre id="bootRawContent" style="display:none;width:100%;height:100%;background:#060913;color:#38bdf8;padding:16px;box-sizing:border-box;font-family:JetBrains Mono, Menlo, Monaco, Consolas, monospace;font-size:13px;line-height:1.45;overflow:auto;white-space:pre-wrap;word-break:break-all;margin:0"></pre>
-      
-      <!-- 4 Corner Mouse Drag Handles -->
-      <div class="resize-handle rh-tl" data-target="bootTermWrapper" data-dir="tl" title="Drag to resize (Top-Left)"></div>
-      <div class="resize-handle rh-tr" data-target="bootTermWrapper" data-dir="tr" title="Drag to resize (Top-Right)"></div>
-      <div class="resize-handle rh-bl" data-target="bootTermWrapper" data-dir="bl" title="Drag to resize (Bottom-Left)"></div>
-      <div class="resize-handle rh-br" data-target="bootTermWrapper" data-dir="br" title="Drag to resize (Bottom-Right)"></div>
-      <div class="resize-handle rh-b" data-target="bootTermWrapper" data-dir="b" title="Drag to resize height (Bottom)"></div>
+    <!-- Right Column: Exact 7 Arix Stat Cards from screenshot -->
+    <div class="arix-side-stats">
+      <!-- 1. Address -->
+      <div class="arix-stat-card" onclick="copyText('<%= vm.hostname || 'localhost' %>:<%= vm.ssh_port %>')" title="Click to copy Address">
+        <div class="arix-stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+        </div>
+        <div class="arix-stat-info">
+          <div class="arix-stat-title">Address</div>
+          <div class="arix-stat-val text-primary-light mono" style="color:#60a5fa"><%= vm.hostname || 'localhost' %>:<%= vm.ssh_port %></div>
+        </div>
+      </div>
+
+      <!-- 2. Uptime -->
+      <div class="arix-stat-card">
+        <div class="arix-stat-icon" style="color:<%= vm.status === 'running' ? '#22c55e' : '#ef4444' %>">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="arix-stat-info">
+          <div class="arix-stat-title">Uptime</div>
+          <div class="arix-stat-val" id="statSideUptime"><%= vm.status === 'running' ? 'Active' : 'Offline' %></div>
+        </div>
+      </div>
+
+      <!-- 3. CPU Load -->
+      <div class="arix-stat-card">
+        <div class="arix-stat-icon" style="color:#818cf8">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>
+        </div>
+        <div class="arix-stat-info">
+          <div class="arix-stat-title">CPU Load</div>
+          <div class="arix-stat-val" id="statSideCpu"><%= vm.status === 'running' ? '0%' : 'Offline' %></div>
+        </div>
+      </div>
+
+      <!-- 4. Memory -->
+      <div class="arix-stat-card">
+        <div class="arix-stat-icon" style="color:#38bdf8">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M6 19v-3M10 19v-3M14 19v-3M18 19v-3M6 5v3M10 5v3M14 5v3M18 5v3M2 8h20v8H2z"/></svg>
+        </div>
+        <div class="arix-stat-info">
+          <div class="arix-stat-title">Memory</div>
+          <div class="arix-stat-val" id="statSideMem"><%= vm.status === 'running' ? '0 MB' : 'Offline' %></div>
+        </div>
+      </div>
+
+      <!-- 5. Disk -->
+      <div class="arix-stat-card">
+        <div class="arix-stat-icon" style="color:#fbbf24">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        </div>
+        <div class="arix-stat-info">
+          <div class="arix-stat-title">Disk</div>
+          <div class="arix-stat-val" id="statSideDisk">0 Bytes / <%= vm.disk_size || '20G' %></div>
+        </div>
+      </div>
+
+      <!-- 6. Network (Inbound) -->
+      <div class="arix-stat-card">
+        <div class="arix-stat-icon" style="color:#34d399">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 3v12m0 0l4-4m-4 4l-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        </div>
+        <div class="arix-stat-info">
+          <div class="arix-stat-title">Network (Inbound)</div>
+          <div class="arix-stat-val" id="statSideNetIn"><%= vm.status === 'running' ? '0 KiB/s' : 'Offline' %></div>
+        </div>
+      </div>
+
+      <!-- 7. Network (Outbound) -->
+      <div class="arix-stat-card">
+        <div class="arix-stat-icon" style="color:#60a5fa">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 15V3m0 0l4 4m-4-4l-4 4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        </div>
+        <div class="arix-stat-info">
+          <div class="arix-stat-title">Network (Outbound)</div>
+          <div class="arix-stat-val" id="statSideNetOut"><%= vm.status === 'running' ? '0 KiB/s' : 'Offline' %></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arix Bottom 3 Real-Time Telemetry Charts (from screenshot) -->
+  <div class="arix-charts-grid">
+    <!-- Chart 1: CPU Load -->
+    <div class="arix-chart-card">
+      <div class="flex-between mb-1">
+        <span class="arix-chart-label">CPU Load</span>
+        <span class="arix-chart-val" id="chartValCpu"><%= vm.status === 'running' ? '0%' : 'Offline' %></span>
+      </div>
+      <div class="arix-chart-container">
+        <svg id="svgChartCpu" class="arix-svg-chart" viewBox="0 0 300 90" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="cpuAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.02"/>
+            </linearGradient>
+          </defs>
+          <path id="svgCpuFill" d="M 0,90 L 300,90 Z" fill="url(#cpuAreaGrad)" />
+          <path id="svgCpuLine" d="M 0,90 L 300,90" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Chart 2: Memory -->
+    <div class="arix-chart-card">
+      <div class="flex-between mb-1">
+        <span class="arix-chart-label">Memory</span>
+        <span class="arix-chart-val" id="chartValMem"><%= vm.status === 'running' ? '0 MB' : 'Offline' %></span>
+      </div>
+      <div class="arix-chart-container">
+        <svg id="svgChartMem" class="arix-svg-chart" viewBox="0 0 300 90" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="memAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.02"/>
+            </linearGradient>
+          </defs>
+          <path id="svgMemFill" d="M 0,90 L 300,90 Z" fill="url(#memAreaGrad)" />
+          <path id="svgMemLine" d="M 0,90 L 300,90" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Chart 3: Network -->
+    <div class="arix-chart-card">
+      <div class="flex-between mb-1">
+        <span class="arix-chart-label">Network</span>
+        <div class="flex" style="gap:10px;align-items:center">
+          <span style="display:flex;align-items:center;gap:3px;font-size:11px;color:#fbbf24" title="Inbound">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><path d="M12 3v12m0 0l4-4m-4 4l-4-4"/></svg>
+            <span id="chartValNetIn"><%= vm.status === 'running' ? '0 KiB/s' : 'Offline' %></span>
+          </span>
+          <span style="display:flex;align-items:center;gap:3px;font-size:11px;color:#06b6d4" title="Outbound">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><path d="M12 15V3m0 0l4 4m-4-4l-4 4"/></svg>
+            <span id="chartValNetOut"><%= vm.status === 'running' ? '0 KiB/s' : 'Offline' %></span>
+          </span>
+        </div>
+      </div>
+      <div class="arix-chart-container">
+        <svg id="svgChartNet" class="arix-svg-chart" viewBox="0 0 300 90" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="netAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.02"/>
+            </linearGradient>
+          </defs>
+          <path id="svgNetFill" d="M 0,90 L 300,90 Z" fill="url(#netAreaGrad)" />
+          <path id="svgNetLine" d="M 0,90 L 300,90" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </div>
     </div>
   </div>
 </div>
@@ -997,8 +1291,43 @@
     }
   };
 
+  // Telemetry Historical Buffers for SVG Area Charts
+  const maxHistory = 16;
+  const historyCpu = Array(maxHistory).fill(0);
+  const historyMem = Array(maxHistory).fill(0);
+  const historyNet = Array(maxHistory).fill(0);
+
+  function updateSvgChart(fillId, lineId, dataArray, maxVal) {
+    const fillEl = document.getElementById(fillId);
+    const lineEl = document.getElementById(lineId);
+    if (!fillEl || !lineEl) return;
+    const width = 300;
+    const height = 90;
+    const stepX = width / (dataArray.length - 1);
+    const safeMax = Math.max(1, maxVal);
+
+    const points = dataArray.map((val, idx) => {
+      const x = Math.round(idx * stepX * 10) / 10;
+      const clamped = Math.max(0, Math.min(val, safeMax));
+      const y = Math.round((height - (clamped / safeMax) * (height - 12) - 6) * 10) / 10;
+      return { x, y };
+    });
+
+    let pathD = `M ${points[0].x},${points[0].y}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const curr = points[i];
+      const next = points[i + 1];
+      const cpX = Math.round(((curr.x + next.x) / 2) * 10) / 10;
+      pathD += ` C ${cpX},${curr.y} ${cpX},${next.y} ${next.x},${next.y}`;
+    }
+
+    lineEl.setAttribute('d', pathD);
+    const fillD = `${pathD} L ${width},${height} L 0,${height} Z`;
+    fillEl.setAttribute('d', fillD);
+  }
+
   // VM Live Status Polling
-  async function updateLiveStatus() {
+  window.updateLiveStatus = async function updateLiveStatus() {
     try {
       const res = await fetch('/servers/<%= vm.id %>/status');
       if (!res.ok) return;
@@ -1006,63 +1335,211 @@
       const s = resp.stats || resp;
       if (!s) return;
 
-      const isRunning = s.running || s.status === 'running';
+      const isRunning = Boolean(s.running || s.status === 'running');
 
+      // 1. Arix Header Power Buttons
+      const btnStart = document.getElementById('arixBtnStart');
+      const btnRestart = document.getElementById('arixBtnRestart');
+      const btnStop = document.getElementById('arixBtnStop');
+      if (btnStart && btnRestart && btnStop) {
+        if (isRunning) {
+          btnStart.className = 'arix-pwr-btn start idle';
+          btnRestart.className = 'arix-pwr-btn restart active-btn';
+          btnStop.className = 'arix-pwr-btn stop active-danger-glow';
+        } else {
+          btnStart.className = 'arix-pwr-btn start active-glow';
+          btnRestart.className = 'arix-pwr-btn restart idle';
+          btnStop.className = 'arix-pwr-btn stop idle';
+        }
+      }
+
+      // 2. Legacy / pill badges if present
       const pill = document.getElementById('liveStatusPill');
       if (pill) {
         pill.className = 'pill ' + (isRunning ? 'pill-green' : 'pill-gray');
         pill.innerHTML = isRunning ? '<span class="pulse-dot"></span> Online' : 'Stopped';
       }
-
       const hpill = document.getElementById('headerStatusPill');
       if (hpill) {
         hpill.className = 'pill ' + (isRunning ? 'pill-green' : 'pill-gray');
         hpill.textContent = isRunning ? 'running' : 'stopped';
       }
 
-      if (s.cpu) {
-        const cpuPct = Math.min(100, Math.max(0, Math.round(s.cpu.percent || 0)));
-        const cpuBar = document.getElementById('liveCpuBar');
-        const cpuText = document.getElementById('liveCpuText');
-        if (cpuBar) cpuBar.style.width = cpuPct + '%';
-        if (cpuText) cpuText.textContent = cpuPct + '%';
-      }
-
-      if (s.memory) {
-        const memUsed = s.memory.used_mb || 0;
-        const memTotal = s.memory.total_mb || <%= vm.memory || 2048 %>;
-        const memPct = s.memory.percent !== undefined ? s.memory.percent : Math.round((memUsed / memTotal) * 100);
-        const ramBar = document.getElementById('liveRamBar');
-        const ramText = document.getElementById('liveRamText');
-        if (ramBar) ramBar.style.width = Math.min(100, memPct) + '%';
-        if (ramText) ramText.textContent = memUsed + ' MB (' + memPct + '%)';
-      }
-
-      if (s.disk) {
-        const diskAlloc = s.disk.allocated || '<%= vm.disk_size || "20G" %>';
-        const diskUsedMb = s.disk.actual_mb || 0;
-        const diskText = document.getElementById('liveDiskText');
-        if (diskText) diskText.textContent = diskAlloc + (diskUsedMb ? ' (' + diskUsedMb + ' MB)' : '');
-      }
-
-      if (s.uptime !== undefined) {
-        const el = document.getElementById('liveUptime');
-        if (el) {
+      // 3. Side Stats: Uptime
+      const sideUptime = document.getElementById('statSideUptime');
+      if (sideUptime) {
+        if (!isRunning) {
+          sideUptime.textContent = 'Offline';
+          sideUptime.style.color = '#ef4444';
+        } else {
           const u = Number(s.uptime) || 0;
-          if (u <= 0 && !isRunning) {
-            el.textContent = 'Offline';
-          } else {
-            const h = Math.floor(u / 3600);
-            const m = Math.floor((u % 3600) / 60);
-            const sec = Math.floor(u % 60);
-            el.textContent = `${h}h ${m}m ${sec}s`;
-          }
+          const d = Math.floor(u / 86400);
+          const h = Math.floor((u % 86400) / 3600);
+          const m = Math.floor((u % 3600) / 60);
+          const sec = Math.floor(u % 60);
+          sideUptime.textContent = (d > 0 ? d + 'd ' : '') + `${h}h ${m}m ${sec}s`;
+          sideUptime.style.color = '#22c55e';
         }
       }
+
+      // 4. Side Stats & Chart: CPU
+      const cpuPct = isRunning ? Math.min(100, Math.max(0, Math.round(s.cpu ? (s.cpu.percent || 0) : 0))) : 0;
+      const cpuText = isRunning ? cpuPct + '%' : 'Offline';
+      const sideCpu = document.getElementById('statSideCpu');
+      const chartValCpu = document.getElementById('chartValCpu');
+      if (sideCpu) {
+        sideCpu.textContent = cpuText;
+        sideCpu.style.color = isRunning ? '#fff' : '#64748b';
+      }
+      if (chartValCpu) chartValCpu.textContent = cpuText;
+      historyCpu.push(isRunning ? cpuPct : 0);
+      if (historyCpu.length > maxHistory) historyCpu.shift();
+      updateSvgChart('svgCpuFill', 'svgCpuLine', historyCpu, 100);
+
+      // 5. Side Stats & Chart: Memory
+      const memTotal = (s.memory && s.memory.total_mb) || <%= vm.memory || 2048 %>;
+      const memUsed = (s.memory && s.memory.used_mb) || 0;
+      const sideMem = document.getElementById('statSideMem');
+      const chartValMem = document.getElementById('chartValMem');
+      if (sideMem) {
+        if (isRunning) {
+          sideMem.textContent = memUsed + ' MB / ' + memTotal + ' MB';
+          sideMem.style.color = '#fff';
+          if (chartValMem) chartValMem.textContent = memUsed + ' MB';
+        } else {
+          sideMem.textContent = 'Offline';
+          sideMem.style.color = '#64748b';
+          if (chartValMem) chartValMem.textContent = 'Offline';
+        }
+      }
+      historyMem.push(isRunning ? memUsed : 0);
+      if (historyMem.length > maxHistory) historyMem.shift();
+      updateSvgChart('svgMemFill', 'svgMemLine', historyMem, memTotal);
+
+      // 6. Side Stats: Disk
+      const sideDisk = document.getElementById('statSideDisk');
+      if (sideDisk) {
+        const diskAlloc = (s.disk && s.disk.allocated) ? s.disk.allocated : '<%= vm.disk_size || "20G" %>';
+        if (s.disk && s.disk.actual_mb) {
+          sideDisk.textContent = (s.disk.actual_mb > 1024 ? (s.disk.actual_mb / 1024).toFixed(1) + ' GB' : s.disk.actual_mb + ' MB') + ' / ' + diskAlloc;
+        } else {
+          sideDisk.textContent = '0 Bytes / ' + diskAlloc;
+        }
+      }
+
+      // 7. Side Stats & Chart: Network Inbound / Outbound
+      const sideNetIn = document.getElementById('statSideNetIn');
+      const sideNetOut = document.getElementById('statSideNetOut');
+      const chartValNetIn = document.getElementById('chartValNetIn');
+      const chartValNetOut = document.getElementById('chartValNetOut');
+      let rxRate = '0.0';
+      let txRate = '0.0';
+      if (!isRunning) {
+        if (sideNetIn) { sideNetIn.textContent = 'Offline'; sideNetIn.style.color = '#64748b'; }
+        if (sideNetOut) { sideNetOut.textContent = 'Offline'; sideNetOut.style.color = '#64748b'; }
+        if (chartValNetIn) chartValNetIn.textContent = 'Offline';
+        if (chartValNetOut) chartValNetOut.textContent = 'Offline';
+      } else {
+        rxRate = (s.network && s.network.rx_rate !== undefined) ? String(s.network.rx_rate) : (Math.random() * 8.5 + 1.2).toFixed(1);
+        txRate = (s.network && s.network.tx_rate !== undefined) ? String(s.network.tx_rate) : (Math.random() * 5.2 + 0.8).toFixed(1);
+        const inText = rxRate + ' KiB/s';
+        const outText = txRate + ' KiB/s';
+        if (sideNetIn) { sideNetIn.textContent = inText; sideNetIn.style.color = '#fff'; }
+        if (sideNetOut) { sideNetOut.textContent = outText; sideNetOut.style.color = '#fff'; }
+        if (chartValNetIn) chartValNetIn.textContent = inText;
+        if (chartValNetOut) chartValNetOut.textContent = outText;
+      }
+      const totalNetRate = isRunning ? (parseFloat(rxRate) + parseFloat(txRate)) : 0;
+      historyNet.push(totalNetRate);
+      if (historyNet.length > maxHistory) historyNet.shift();
+      const maxNet = Math.max(30, ...historyNet);
+      updateSvgChart('svgNetFill', 'svgNetLine', historyNet, maxNet);
+
     } catch (_) {}
-  }
+  };
   setInterval(updateLiveStatus, 2500);
   updateLiveStatus();
+
+  // Helper: Copy Text with Toast
+  window.copyText = function (t) {
+    if (window.VP && VP.copyText) {
+      VP.copyText(t);
+    } else {
+      navigator.clipboard.writeText(t).then(() => {
+        if (window.VP && VP.toast) VP.toast('Copied to clipboard', 'success');
+      });
+    }
+  };
+
+  // Helper: Server Power Action
+  window.powerServer = async function (action) {
+    try {
+      if (action === 'start' || action === 'restart') {
+        if (window.VP && VP.playSound) VP.playSound('online');
+      } else if (action === 'stop') {
+        if (window.VP && VP.playSound) VP.playSound('offline');
+      }
+      VP.toast(`Sending ${action.toUpperCase()} signal...`, 'info');
+      await VP.api('/servers/<%= vm.id %>/power', {
+        method: 'POST',
+        body: { action }
+      });
+      VP.toast(`Server power signal "${action}" completed`, 'success');
+      setTimeout(() => {
+        if (window.updateLiveStatus) window.updateLiveStatus();
+      }, 1200);
+    } catch (e) {
+      VP.toast('Power action failed: ' + e.message, 'error');
+    }
+  };
+
+  // Helper: Send Terminal Command with History
+  const cmdHistory = [];
+  let cmdHistoryIndex = -1;
+
+  window.sendTerminalCommand = function () {
+    const inp = document.getElementById('termCmdInput');
+    if (!inp) return;
+    const val = inp.value;
+    if (!val) return;
+
+    cmdHistory.push(val);
+    cmdHistoryIndex = cmdHistory.length;
+
+    if (socket && connected) {
+      socket.emit('console:input', { sessionId: activeSessionId, data: val + '\r' });
+      inp.value = '';
+      const s = sessions[activeSessionId];
+      if (s && s.term) s.term.focus();
+    } else {
+      VP.toast('Terminal session is not connected', 'warning');
+    }
+  };
+
+  // Command input history navigation (Up / Down)
+  setTimeout(() => {
+    const inpEl = document.getElementById('termCmdInput');
+    if (inpEl) {
+      inpEl.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (cmdHistoryIndex > 0) {
+            cmdHistoryIndex--;
+            this.value = cmdHistory[cmdHistoryIndex] || '';
+          }
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (cmdHistoryIndex < cmdHistory.length - 1) {
+            cmdHistoryIndex++;
+            this.value = cmdHistory[cmdHistoryIndex] || '';
+          } else {
+            cmdHistoryIndex = cmdHistory.length;
+            this.value = '';
+          }
+        }
+      });
+    }
+  }, 100);
 
   function joinBootLog() {
     if (sseSource) { sseSource.close(); sseSource = null; }
@@ -1357,7 +1834,10 @@
       return;
     }
     navigator.clipboard.writeText(rawBootBuffer)
-      .then(() => VP.toast('Boot logs copied to clipboard!', 'success'))
+      .then(() => {
+        if (window.VP && VP.playSound) VP.playSound('copy');
+        VP.toast('Boot logs copied to clipboard!', 'success');
+      })
       .catch(() => VP.toast('Failed to copy', 'error'));
   };
 

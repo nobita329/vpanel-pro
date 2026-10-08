@@ -1,18 +1,21 @@
 <%
 const tabs = [
-  ['overview', 'Overview', '/servers/' + vm.id],
-  ['console', 'Terminal', '/servers/' + vm.id + '/console'],
-  ['files', 'File Manager', '/servers/' + vm.id + '/files'],
-  ['backups', 'Backups', '/servers/' + vm.id + '/backups'],
-  ['schedules', 'Schedules', '/servers/' + vm.id + '/schedules'],
-  ['startup', 'Startup', '/servers/' + vm.id + '/startup'],
-  ['settings', 'Settings', '/servers/' + vm.id + '/settings'],
-  ['subusers', 'Subusers', '/servers/' + vm.id + '/subusers'],
-  ['activity', 'Activity', '/servers/' + vm.id + '/activity'],
+  ['overview', 'Overview', '/servers/' + vm.id, 'layout-grid'],
+  ['console', 'Terminal', '/servers/' + vm.id + '/console', 'terminal'],
+  ['files', 'File Manager', '/servers/' + vm.id + '/files', 'folder'],
+  ['backups', 'Backups', '/servers/' + vm.id + '/backups', 'archive'],
+  ['schedules', 'Schedules', '/servers/' + vm.id + '/schedules', 'calendar'],
+  ['startup', 'Startup', '/servers/' + vm.id + '/startup', 'rocket'],
+  ['subusers', 'Subusers', '/servers/' + vm.id + '/subusers', 'users'],
+  ['settings', 'Settings', '/servers/' + vm.id + '/settings', 'settings'],
+  ['activity', 'Activity', '/servers/' + vm.id + '/activity', 'activity'],
 ];
 %>
-<div class="tabs">
-  <% for (const [key, label, href] of tabs) { %>
-    <a class="tab <%= key === page ? 'active' : '' %>" href="<%= href %>"><%= label %></a>
+<div class="tabs mb-4" style="background:var(--gray-800);padding:5px;border-radius:var(--radius-box);border:1px solid var(--border);width:fit-content;display:flex;gap:4px">
+  <% for (const [key, label, href, icon] of tabs) { %>
+    <a class="tab <%= key === page ? 'active' : '' %>" href="<%= href %>" style="border-radius:var(--radius-input);padding:7px 14px;font-size:13px;display:inline-flex;align-items:center;gap:7px">
+      <i data-lucide="<%= icon %>" style="width:14px;height:14px"></i>
+      <%= label %>
+    </a>
   <% } %>
 </div>

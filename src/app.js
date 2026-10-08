@@ -324,6 +324,8 @@ async function bootstrap() {
   await scheduleService.loadAll();
   const templateService = require('./services/templateService');
   templateService.initDefaults().catch(e => logger.warn('[app] templateService init error: ' + e.message));
+  const cacheService = require('./services/cacheService');
+  cacheService.initAutoClear();
 
   const webApp = createWebApp();
   const apiApp = createApiApp();

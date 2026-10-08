@@ -202,7 +202,19 @@ function getCuratedFallback(category, page, query, errMsg) {
   };
 }
 
+function clearCache() {
+  const size = cache.size;
+  cache.clear();
+  return size;
+}
+
+function getCacheSize() {
+  return cache.size;
+}
+
 module.exports = {
   CATEGORIES,
   getWallpapers,
+  clearCache,
+  getCacheSize,
 };

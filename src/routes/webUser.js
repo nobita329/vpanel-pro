@@ -433,23 +433,7 @@ router.get('/activity', async (req, res, next) => {
    }
 });
 
-router.get('/resources', async (req, res, next) => {
-  try {
-    const data = await resourceService.getUserResourceData(req.user.id);
-    render(res, 'resources', data);
-  } catch (err) {
-    next(err);
-  }
-});
-
-router.get('/resources/stats', async (req, res, next) => {
-  try {
-    const data = await resourceService.getUserResourceData(req.user.id);
-    res.json({ ok: true, ...data });
-  } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
+router.get(['/resources', '/resources/stats'], (req, res) => res.redirect('/dashboard'));
 
 router.get('/qrcode', (req, res) => {
   const data = req.query.data;

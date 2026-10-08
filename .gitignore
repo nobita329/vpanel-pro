@@ -8,3 +8,5 @@ public/vendor/novnc/
 npm-debug.log*
 *.log
 .DS_Store
+scratch/
+.vscode/

@@ -23,7 +23,8 @@ router.post('/login', express.urlencoded({ extended: true }), async (req, res, n
   try {
     const { username, password, code } = req.body;
     const ip = req.ip || req.socket.remoteAddress;
-    const result = await authService.attemptLogin(String(username || '').trim(), String(password || ''), ip);
+    const userAgent = req.headers['user-agent'] || '';
+    const result = await authService.attemptLogin(String(username || '').trim(), String(password || ''), ip, userAgent);
     if (!result.ok) {
       return render(res, 'login', { error: result.error, username });
     }
@@ -35,7 +36,7 @@ router.post('/login', express.urlencoded({ extended: true }), async (req, res, n
       const check = authService.confirmTfa(user, code);
       if (!check.ok) return render(res, 'login', { tfa: true, tfaUser: user.username, error: check.error });
     }
-    const { token } = await authService.finishLogin(user, ip);
+    const { token } = await authService.finishLogin(user, ip, userAgent);
     res.cookie('token', token, { httpOnly: false, sameSite: 'lax', maxAge: 7 * 24 * 3600 * 1000 });
     res.redirect('/dashboard');
   } catch (err) {

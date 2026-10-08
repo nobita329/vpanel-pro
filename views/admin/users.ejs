@@ -2,101 +2,162 @@
 <%- include('../partials/ambient') %>
 <%- include('../partials/topbar') %>
 <%- include('../partials/sidebar') %>
+
+<%
+  const userList = (typeof users !== 'undefined' && users) || [];
+  function getTimeAgo(date) {
+    if (!date) return 'Never';
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+    if (isNaN(seconds)) return 'Never';
+    if (seconds < 60) return 'Just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}d ago`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months}mo ago`;
+    return `${Math.floor(months / 12)}y ago`;
+  }
+%>
+
 <div class="main">
-  <div class="flex-between mb-4">
+  <!-- Breadcrumbs -->
+  <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+    <a href="/admin" style="color:var(--text-muted);text-decoration:none">Admin</a>
+    <span>/</span>
+    <span style="color:var(--accent);font-weight:600">Users</span>
+  </div>
+
+  <div class="flex-between mb-4" style="flex-wrap:wrap;gap:12px">
     <div>
-      <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.4px">User Management</h2>
-      <div class="muted" style="margin-top:2px">Manage panel users, roles, and security permissions</div>
+      <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.4px;margin:0">Users</h2>
+      <div class="muted" style="margin-top:2px">All registered users on the system.</div>
     </div>
-    <button class="btn btn-primary" onclick="openCreate()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
-      Create User
-    </button>
+    <div class="flex" style="gap:10px">
+      <a href="/admin/users/new" class="btn btn-primary" style="background:#10b981;border-color:#10b981;display:flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+        Create New
+      </a>
+      <button class="btn" onclick="openCreateModal()" style="display:flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 5v14M5 12h14"/></svg>
+        Quick Create
+      </button>
+    </div>
   </div>
 
   <div class="card">
-    <div class="flex-between mb-3">
-      <div class="card-title" style="margin:0">
+    <div class="flex-between mb-3" style="flex-wrap:wrap;gap:12px">
+      <div class="card-title" style="margin:0;display:flex;align-items:center;gap:8px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-        Registered Users (<%= users.length %>)
+        User List (<span id="userCount"><%= userList.length %></span>)
       </div>
-      <input type="search" id="userFilter" placeholder="Filter by name or email..." style="width:230px;padding:6px 12px;font-size:13px"/>
+      <div style="position:relative">
+        <input type="search" id="userFilter" value="<%= typeof filterQuery !== 'undefined' ? filterQuery : '' %>" placeholder="Search by email, name, username..." style="width:280px;padding:8px 12px 8px 32px;font-size:13px;border-radius:8px"/>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
     </div>
 
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>User Profile</th>
-            <th>Role</th>
-            <th>Instances</th>
-            <th>Account Status</th>
-            <th>2FA Security</th>
-            <th>Last Active</th>
-            <th class="right">Actions</th>
+            <th style="width:50px">ID</th>
+            <th>Email</th>
+            <th>Client Name</th>
+            <th>Username</th>
+            <th class="text-center" style="width:70px">2FA</th>
+            <th class="text-center" style="width:110px" title="Servers that this user is marked as the owner of.">Servers Owned</th>
+            <th class="text-center" style="width:90px" title="Servers that this user can access because they are marked as a subuser.">Can Access</th>
+            <th class="text-center" style="width:140px">Last Seen</th>
+            <th class="right" style="width:230px">Actions</th>
           </tr>
         </thead>
         <tbody>
-        <% for (const u of users) { %>
-          <tr class="user-row">
+        <% if (userList.length === 0) { %>
+          <tr>
+            <td colspan="9" style="text-align:center;padding:32px" class="muted">No users found.</td>
+          </tr>
+        <% } %>
+        <% for (const u of userList) { %>
+          <tr class="user-row" data-search="<%= `${u.id} ${u.email} ${u.username} ${u.name_first || ''} ${u.name_last || ''} ${u.name || ''}`.toLowerCase() %>">
+            <td><code style="font-size:12px;color:var(--accent)"><%= u.id %></code></td>
             <td>
-              <div class="flex" style="gap:11px">
-                <div class="avatar" style="width:34px;height:34px;font-size:13px">
-                  <% if (u.avatar) { %>
-                    <img src="<%= u.avatar %>"/>
-                  <% } else { %>
-                    <%= (u.username[0]||'U').toUpperCase() %>
-                  <% } %>
-                </div>
+              <div class="flex" style="gap:9px;align-items:center">
+                <img src="<%= u.avatar || u.gravatar || 'https://www.gravatar.com/avatar/?d=mp' %>" style="width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.15)"/>
                 <div>
-                  <a href="/admin/users/<%= u.id %>" style="font-weight:700;color:#fff"><%= u.username %></a>
-                  <div class="muted text-sm"><%= u.email %></div>
+                  <a href="/admin/users/<%= u.id %>" style="font-weight:700;color:#fff;text-decoration:none">
+                    <%= u.email %>
+                  </a>
+                  <% if (u.root_admin || u.role === 'admin') { %>
+                    <span title="Administrator" style="color:#fbbf24;margin-left:4px;font-size:13px">★</span>
+                  <% } %>
+                  <% if (u.is_banned) { %>
+                    <span class="pill pill-red" style="font-size:10px;padding:1px 6px;margin-left:4px" title="<%= u.ban_reason ? 'Banned: ' + u.ban_reason : 'Banned' %>">Banned</span>
+                  <% } else if (u.suspended) { %>
+                    <span class="pill pill-yellow" style="font-size:10px;padding:1px 6px;margin-left:4px" title="<%= u.suspended_until ? 'Suspended until ' + new Date(u.suspended_until).toLocaleString() : (u.suspension_reason || 'Suspended') %>">Suspended</span>
+                  <% } %>
                 </div>
               </div>
             </td>
             <td>
-              <% if (u.root_admin || u.role === 'admin') { %>
-                <span class="pill pill-yellow font-bold">Admin</span>
+              <%= (u.name_last && u.name_first) ? `${u.name_last}, ${u.name_first}` : (u.name || u.username) %>
+            </td>
+            <td>
+              <code style="font-size:12px;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px"><%= u.username %></code>
+            </td>
+            <td class="text-center">
+              <% if (u.tfa_enabled) { %>
+                <span title="2FA Enabled" style="color:#10b981">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </span>
               <% } else { %>
-                <span class="pill pill-blue font-bold">User</span>
+                <span title="2FA Disabled" style="color:#ef4444">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                </span>
               <% } %>
             </td>
-            <td>
-              <a href="/admin/users/<%= u.id %>" class="pill <%= u.vm_count > 0 ? 'pill-blue' : 'pill-gray' %> font-bold" style="text-decoration:none" title="View VMs for <%= u.username %>">
-                <%= u.vm_count || 0 %> VMs
+            <td class="text-center">
+              <a href="/admin/servers?owner_id=<%= u.id %>" class="pill <%= u.vm_count > 0 ? 'pill-blue' : 'pill-gray' %> font-bold" style="text-decoration:none" title="View servers owned by <%= u.username %>">
+                <%= u.vm_count || 0 %>
               </a>
             </td>
-            <td>
-              <span class="pill <%= u.suspended ? 'pill-red' : 'pill-green' %>">
-                <%= u.suspended ? 'Suspended' : 'Active' %>
-              </span>
+            <td class="text-center">
+              <span class="pill pill-gray" style="font-size:11px"><%= u.subuser_count || 0 %></span>
             </td>
-            <td>
-              <span class="pill <%= u.tfa_enabled ? 'pill-green' : 'pill-gray' %>">
-                <%= u.tfa_enabled ? 'Enabled' : 'Disabled' %>
-              </span>
+            <td class="text-center">
+              <% if (u.last_login_at) { %>
+                <% const d = new Date(u.last_login_at); %>
+                <span title="<%= d.toLocaleString() %>" style="font-size:12px;color:var(--text)">
+                  <%= getTimeAgo(d) %>
+                </span>
+                <% if (u.last_login_ip) { %>
+                  <div style="font-size:11px;color:var(--text-muted);font-family:monospace"><%= u.last_login_ip %></div>
+                <% } %>
+              <% } else { %>
+                <span class="muted text-sm">Never</span>
+              <% } %>
             </td>
-            <td class="muted text-sm"><%= u.last_login_at ? new Date(u.last_login_at).toLocaleString() : 'Never' %></td>
             <td class="right">
-              <div class="flex right" style="gap:6px">
-                <a class="btn btn-sm btn-primary" href="/admin/servers/create?owner_id=<%= u.id %>" title="Deploy new VM for <%= u.username %>">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="vertical-align:-1px;margin-right:2px"><path d="M12 5v14M5 12h14"/></svg>+ VM
+              <div class="flex right" style="gap:5px;flex-wrap:wrap">
+                <a class="btn btn-sm btn-primary" href="/admin/servers/create?owner_id=<%= u.id %>" title="Deploy VM for <%= u.username %>" style="padding:4px 8px;font-size:11px">
+                  + VM
                 </a>
-                <% if (u.id !== user.id && !u.suspended) { %>
+                <% if (u.id !== user.id && !u.suspended && !u.is_banned) { %>
                   <form method="POST" action="/admin/users/<%= u.id %>/impersonate" style="display:inline;margin:0">
-                    <button class="btn btn-sm" type="submit" title="Login as <%= u.username %>" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.35);color:#fbbf24;display:flex;align-items:center;gap:4px">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    <button class="btn btn-sm" type="submit" title="Login as <%= u.username %>" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.35);color:#fbbf24;padding:4px 8px;font-size:11px">
                       Login As
                     </button>
                   </form>
                 <% } %>
-                <a class="btn btn-sm" href="/admin/users/<%= u.id %>">Manage</a>
+                <a class="btn btn-sm" href="/admin/users/<%= u.id %>" style="padding:4px 8px;font-size:11px">Manage</a>
                 <% if (u.suspended) { %>
-                  <button class="btn btn-sm btn-green" onclick="suspend(<%= u.id %>, false)">Unsuspend</button>
+                  <button class="btn btn-sm btn-green" onclick="quickSuspend('<%= u.id %>', false)" style="padding:4px 8px;font-size:11px">Unsuspend</button>
                 <% } else { %>
-                  <button class="btn btn-sm" onclick="suspend(<%= u.id %>, true)">Suspend</button>
+                  <button class="btn btn-sm" onclick="quickSuspend('<%= u.id %>', true)" style="padding:4px 8px;font-size:11px">Suspend</button>
                 <% } %>
-                <button class="btn btn-sm btn-danger" onclick="del(<%= u.id %>)">Delete</button>
+                <button class="btn btn-sm btn-danger" onclick="quickDelete('<%= u.id %>', '<%= u.username %>', '<%= u.vm_count || 0 %>')" style="padding:4px 8px;font-size:11px">Delete</button>
               </div>
             </td>
           </tr>
@@ -107,30 +168,42 @@
   </div>
 </div>
 
-<!-- Create User Modal -->
-<div id="userModal" style="display:none">
-  <div style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:grid;place-items:center;padding:20px;backdrop-filter:blur(8px)">
-    <div class="card" style="width:min(480px,94vw);box-shadow:0 24px 60px rgba(0,0,0,0.6)">
+<!-- Quick Create User Modal -->
+<div id="quickCreateModal" style="display:none">
+  <div style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:grid;place-items:center;padding:20px;backdrop-filter:blur(8px)">
+    <div class="card" style="width:min(520px,94vw);box-shadow:0 24px 60px rgba(0,0,0,0.6)">
       <div class="flex-between mb-3">
-        <h3 style="font-size:18px;font-weight:700">Create New User</h3>
-        <button class="icon-btn" style="width:28px;height:28px" onclick="document.getElementById('userModal').style.display='none'">✕</button>
+        <h3 style="font-size:18px;font-weight:700;margin:0">Quick Create User</h3>
+        <button class="btn btn-sm" onclick="closeCreateModal()">✕</button>
       </div>
-      <div class="form-group"><label>Username *</label><input id="uName" placeholder="e.g. johndoe" required/></div>
-      <div class="form-group"><label>Email Address *</label><input id="uEmail" type="email" placeholder="john@example.com" required/></div>
-      <div class="form-row">
-        <div class="form-group"><label>Password *</label><input id="uPass" type="password" placeholder="••••••••" required/></div>
-        <div class="form-group"><label>Display Name</label><input id="uDisplay" placeholder="John Doe"/></div>
+
+      <div class="form-group mb-3"><label>Email Address *</label><input id="qEmail" type="email" placeholder="john@example.com" required/></div>
+      <div class="form-group mb-3"><label>Username *</label><input id="qUsername" placeholder="e.g. johndoe" required/></div>
+
+      <div class="grid grid-2" style="gap:10px">
+        <div class="form-group mb-3"><label>Client First Name</label><input id="qFirst" placeholder="John"/></div>
+        <div class="form-group mb-3"><label>Client Last Name</label><input id="qLast" placeholder="Doe"/></div>
       </div>
-      <div class="form-group">
+
+      <div class="form-group mb-3">
+        <div class="flex-between" style="margin-bottom:4px">
+          <label style="margin:0">Password *</label>
+          <a href="#" onclick="genModalPass(event)" style="font-size:11px;color:var(--accent)">Generate Strong Password</a>
+        </div>
+        <input id="qPass" type="password" placeholder="••••••••" required/>
+      </div>
+
+      <div class="form-group mb-3">
         <label>Account Role</label>
-        <select id="uRole">
+        <select id="qRole" style="width:100%;padding:9px;border-radius:8px">
           <option value="user">User (Standard Access)</option>
           <option value="admin">Administrator (Full Access)</option>
         </select>
       </div>
+
       <div class="flex right mt-3" style="gap:8px">
-        <button class="btn" onclick="document.getElementById('userModal').style.display='none'">Cancel</button>
-        <button class="btn btn-primary" onclick="createUser()">Create User</button>
+        <button class="btn" onclick="closeCreateModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitQuickCreate()" style="background:#10b981;border-color:#10b981">Create User</button>
       </div>
     </div>
   </div>
@@ -140,29 +213,54 @@
 <%- include('../partials/foot') %>
 
 <script>
-function openCreate() { document.getElementById('userModal').style.display = 'block'; }
-function val(id) { return document.getElementById(id).value; }
+function openCreateModal() { document.getElementById('quickCreateModal').style.display = 'block'; }
+function closeCreateModal() { document.getElementById('quickCreateModal').style.display = 'none'; }
 
-async function createUser() {
-  const username = val('uName').trim();
-  const email = val('uEmail').trim();
-  const password = val('uPass');
-  if (!username || !email || !password) {
-    return VP.toast('Please fill in all required fields', 'error');
+function genModalPass(e) {
+  if (e) e.preventDefault();
+  const chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*';
+  let pass = '';
+  for (let i = 0; i < 14; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+  const el = document.getElementById('qPass');
+  el.value = pass;
+  el.type = 'text';
+  VP.toast('Generated password: ' + pass, 'info');
+}
+
+async function submitQuickCreate() {
+  const email = document.getElementById('qEmail').value.trim();
+  const username = document.getElementById('qUsername').value.trim();
+  const name_first = document.getElementById('qFirst').value.trim();
+  const name_last = document.getElementById('qLast').value.trim();
+  const role = document.getElementById('qRole').value;
+  const password = document.getElementById('qPass').value;
+
+  if (!email || !username || !password) {
+    return VP.toast('Please fill in email, username, and password', 'error');
   }
+
   try {
     await VP.api('/admin/users/create', {
       method: 'POST',
-      body: { username, email, password, name: val('uDisplay'), role: val('uRole') },
+      body: {
+        email,
+        username,
+        name_first,
+        name_last,
+        name: (name_first || name_last) ? `${name_first} ${name_last}`.trim() : username,
+        role,
+        root_admin: role === 'admin' ? 1 : 0,
+        password
+      }
     });
-    VP.toast('User created successfully', 'success');
+    VP.toast('User created successfully!', 'success');
     location.reload();
   } catch (e) {
-    VP.toast(e.message, 'error');
+    VP.toast(e.message || 'Failed to create user', 'error');
   }
 }
 
-async function suspend(id, on) {
+async function quickSuspend(id, on) {
   try {
     await VP.api('/admin/users/' + id + '/suspend', { method: 'POST', body: { suspend: on } });
     VP.toast(on ? 'User suspended' : 'User unsuspended', 'success');
@@ -172,22 +270,35 @@ async function suspend(id, on) {
   }
 }
 
-async function del(id) {
-  const ok = await VP.confirmDialog('Delete this user? All their virtual machines will also be removed!', { title: 'Delete user?' });
+async function quickDelete(id, username, vmCount) {
+  const count = parseInt(vmCount, 10) || 0;
+  if (count > 0) {
+    VP.toast(`Cannot delete ${username}: User still owns ${count} virtual machine(s). Delete or transfer them first.`, 'error');
+    return;
+  }
+  const ok = await VP.confirmDialog(`Are you sure you want to delete user "${username}"? This action cannot be undone.`, { title: 'Delete User' });
   if (!ok) return;
+
   try {
     await VP.api('/admin/users/' + id + '/delete', { method: 'POST' });
     VP.toast('User deleted', 'success');
-    setTimeout(() => location.reload(), 700);
+    setTimeout(() => location.reload(), 600);
   } catch (e) {
     VP.toast(e.message, 'error');
   }
 }
 
+// Live filter functionality
 document.getElementById('userFilter')?.addEventListener('input', function() {
   const q = this.value.toLowerCase().trim();
+  let count = 0;
   document.querySelectorAll('.user-row').forEach(row => {
-    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    const text = row.getAttribute('data-search') || '';
+    const match = !q || text.includes(q);
+    row.style.display = match ? '' : 'none';
+    if (match) count++;
   });
+  const countEl = document.getElementById('userCount');
+  if (countEl) countEl.textContent = count;
 });
 </script>

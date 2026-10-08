@@ -28,9 +28,35 @@ async function logActivity({ user_id = null, vm_id = null, event, details = null
   } catch (e) { /* noop */ }
 }
 
-async function logLogin({ user_id = null, ip, username, status }) {
+function parseUserAgent(ua = '') {
+  ua = String(ua || '');
+  let device_type = 'Desktop';
+  if (/mobile/i.test(ua)) device_type = 'Mobile';
+  else if (/tablet|ipad/i.test(ua)) device_type = 'Tablet';
+
+  let platform = 'Unknown';
+  if (/windows/i.test(ua)) platform = 'Windows';
+  else if (/macintosh|mac os x/i.test(ua)) platform = 'macOS';
+  else if (/android/i.test(ua)) platform = 'Android';
+  else if (/iphone|ipad|ipod/i.test(ua)) platform = 'iOS';
+  else if (/cros/i.test(ua)) platform = 'ChromeOS';
+  else if (/linux/i.test(ua)) platform = 'Linux';
+
+  let browser = 'Unknown';
+  if (/edg/i.test(ua)) browser = 'Edge';
+  else if (/opr|opera/i.test(ua)) browser = 'Opera';
+  else if (/chrome|crios/i.test(ua)) browser = 'Chrome';
+  else if (/firefox|fxios/i.test(ua)) browser = 'Firefox';
+  else if (/safari/i.test(ua)) browser = 'Safari';
+
+  return { device_type, platform, browser };
+}
+
+async function logLogin({ user_id = null, ip, username, status, user_agent = null, location = null, is_vpn = false }) {
   try {
     const id = await getNextId('login_attempts');
+    const uaInfo = parseUserAgent(user_agent);
+    const loc = location || (ip === '127.0.0.1' || ip === '::1' || String(ip || '').startsWith('192.168.') || String(ip || '').startsWith('10.') ? 'Local Network' : 'Unknown');
     await collections.login_attempts.insertOne({
       id,
       user_id: user_id !== null ? Number(user_id) : null,
@@ -38,6 +64,12 @@ async function logLogin({ user_id = null, ip, username, status }) {
       username,
       status,
       success: status === 'success',
+      user_agent,
+      device_type: uaInfo.device_type,
+      platform: uaInfo.platform,
+      browser: uaInfo.browser,
+      location: loc,
+      is_vpn: !!is_vpn,
       timestamp: new Date().toISOString(),
       created_at: new Date().toISOString(),
     });
@@ -46,7 +78,7 @@ async function logLogin({ user_id = null, ip, username, status }) {
     const eventName = status === 'success' ? 'auth:login_success' : 'auth:failed_login';
     pluginManager.emitPlatformEvent(
       eventName,
-      { username, ip, status },
+      { username, ip, status, device_type: uaInfo.device_type, browser: uaInfo.browser },
       { user_id, ip }
     ).catch(() => {});
   } catch (e) { /* noop */ }

@@ -7,6 +7,9 @@ module.exports = {
       instances: 1,
       autorestart: true,
       max_memory_restart: '1G',
+      watch: ['src', 'views'],
+      ignore_watch: ['node_modules', 'storage', 'vms', '.git', 'data', 'public/uploads'],
+      watch_delay: 1000,
       env: {
         NODE_ENV: 'production',
       },

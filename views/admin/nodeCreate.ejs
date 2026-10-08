@@ -1,0 +1,250 @@
+<%- include('../partials/head', { title: 'New Node - Admin' }) %>
+<%- include('../partials/ambient') %>
+<%- include('../partials/topbar') %>
+<%- include('../partials/sidebar') %>
+
+<%
+  const locList = (typeof locations !== 'undefined' && locations) || [
+    { id: 1, short: 'local', long: 'Local Cluster / Primary Datacenter' }
+  ];
+%>
+
+<div class="main">
+  <!-- Breadcrumbs -->
+  <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+    <a href="/admin" style="color:var(--text-muted);text-decoration:none">Admin</a>
+    <span>/</span>
+    <a href="/admin/nodes" style="color:var(--text-muted);text-decoration:none">Nodes</a>
+    <span>/</span>
+    <span style="color:var(--accent);font-weight:600">New</span>
+  </div>
+
+  <!-- Header -->
+  <div class="flex-between mb-4">
+    <div>
+      <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.4px;margin:0">Create New Node</h2>
+      <div class="muted" style="margin-top:2px">Configure a new local or remote hypervisor node for servers to be installed to.</div>
+    </div>
+    <a href="/admin/nodes" class="btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="vertical-align:-2px;margin-right:4px"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back to Nodes
+    </a>
+  </div>
+
+  <form id="createNodeForm" onsubmit="submitCreateNode(event)">
+    <div class="grid grid-2" style="gap:20px;align-items:start">
+
+      <!-- 1. Basic Details Card (matching Pterodactyl new.blade.php) -->
+      <div class="card">
+        <div class="card-title mb-3" style="display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
+          Basic Details
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="nName">Node Name <span style="color:#ef4444">*</span></label>
+          <input type="text" id="nName" class="form-control" placeholder="e.g. Node 2 - EU Frankfurt" required maxlength="100"/>
+          <small class="muted">A human-readable identifier for this node.</small>
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="nDescription">Description</label>
+          <textarea id="nDescription" class="form-control" rows="3" placeholder="Optional description or hardware notes..." style="min-height:75px"></textarea>
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="nLocation">Location <span style="color:#ef4444">*</span></label>
+          <select id="nLocation" class="form-control" style="width:100%;border-radius:8px">
+            <% for (const loc of locList) { %>
+              <option value="<%= loc.id %>"><%= loc.long %> (<%= loc.short %>)</option>
+            <% } %>
+          </select>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Node Visibility</label>
+          <div class="flex" style="gap:16px;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="nodeVisibility" value="1" checked/>
+              <span class="font-bold" style="color:#10b981">Public</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="nodeVisibility" value="0"/>
+              <span class="font-bold" style="color:#ef4444">Private</span>
+            </label>
+          </div>
+          <small class="muted">Setting a node to private denies automatic assignment during provisioning.</small>
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="nFQDN">Fully Qualified Domain Name (FQDN) <span style="color:#ef4444">*</span></label>
+          <input type="text" id="nFQDN" class="form-control" placeholder="e.g. node.example.com or localhost" required/>
+          <small class="muted">Domain or IP used for connecting to the node daemon.</small>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Communicate Over SSL</label>
+          <div class="flex" style="gap:16px;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="nodeScheme" value="https"/>
+              <span>Use SSL Connection (HTTPS)</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="nodeScheme" value="http" checked/>
+              <span>Use HTTP Connection</span>
+            </label>
+          </div>
+          <small class="muted">Select HTTP if using a local IP or no SSL certificates are configured.</small>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Behind Proxy</label>
+          <div class="flex" style="gap:16px;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="nodeProxy" value="0" checked/>
+              <span>Not Behind Proxy</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="radio" name="nodeProxy" value="1"/>
+              <span>Behind Proxy (Cloudflare / NGINX)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Configuration Card (matching Pterodactyl new.blade.php) -->
+      <div>
+        <div class="card mb-3">
+          <div class="card-title mb-3" style="display:flex;align-items:center;gap:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Resource Allocation &amp; Limits
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="nDaemonBase">Daemon Server File Directory</label>
+            <input type="text" id="nDaemonBase" class="form-control" value="/var/lib/pterodactyl/volumes" required/>
+            <small class="muted">Directory on the node host where instance files and images are stored.</small>
+          </div>
+
+          <div class="grid grid-2" style="gap:12px">
+            <div class="form-group mb-3">
+              <label for="nMemory">Total Memory (MiB) <span style="color:#ef4444">*</span></label>
+              <input type="number" id="nMemory" class="form-control" value="16384" min="512" step="512" required/>
+            </div>
+            <div class="form-group mb-3">
+              <label for="nMemoryOver">Memory Over-Allocation (%)</label>
+              <input type="number" id="nMemoryOver" class="form-control" value="0" min="-1" step="5"/>
+            </div>
+          </div>
+          <small class="muted" style="display:block;margin-top:-6px;margin-bottom:12px">Set 0 to prevent exceeding limit, or -1 to disable overallocation checks.</small>
+
+          <div class="grid grid-2" style="gap:12px">
+            <div class="form-group mb-3">
+              <label for="nDisk">Total Disk Space (MiB) <span style="color:#ef4444">*</span></label>
+              <input type="number" id="nDisk" class="form-control" value="102400" min="1024" step="1024" required/>
+            </div>
+            <div class="form-group mb-3">
+              <label for="nDiskOver">Disk Over-Allocation (%)</label>
+              <input type="number" id="nDiskOver" class="form-control" value="0" min="-1" step="5"/>
+            </div>
+          </div>
+
+          <div class="grid grid-2" style="gap:12px">
+            <div class="form-group mb-3">
+              <label for="nDaemonListen">Daemon Port</label>
+              <input type="number" id="nDaemonListen" class="form-control" value="8080" min="1" max="65535"/>
+            </div>
+            <div class="form-group mb-3">
+              <label for="nDaemonSFTP">Daemon SFTP Port</label>
+              <input type="number" id="nDaemonSFTP" class="form-control" value="2022" min="1" max="65535"/>
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="nServerLimit">Server Limit (Optional)</label>
+            <input type="number" id="nServerLimit" class="form-control" placeholder="Leave blank for no restriction" min="1"/>
+            <small class="muted">Maximum number of servers that can be deployed to this node.</small>
+          </div>
+        </div>
+
+        <!-- 3. Optional Initial Allocations -->
+        <div class="card mb-3">
+          <div class="card-title mb-2" style="font-size:15px;display:flex;align-items:center;gap:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
+            Initial Port Allocations (Optional)
+          </div>
+          <p class="muted text-sm mb-3">Optionally create port allocations for this node right away.</p>
+
+          <div class="grid grid-2" style="gap:12px">
+            <div class="form-group mb-2">
+              <label for="nInitIp">IP Address</label>
+              <input type="text" id="nInitIp" class="form-control" placeholder="127.0.0.1 or 0.0.0.0"/>
+            </div>
+            <div class="form-group mb-2">
+              <label for="nInitPorts">Port Range</label>
+              <input type="text" id="nInitPorts" class="form-control" placeholder="e.g. 25501-25520"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Toolbar -->
+    <div class="card mt-4" style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px">
+      <div class="muted text-sm">After creating the node, you can generate its Wings configuration file and deployment token.</div>
+      <div class="flex" style="gap:10px">
+        <a href="/admin/nodes" class="btn">Cancel</a>
+        <button type="submit" id="submitBtn" class="btn btn-primary" style="background:#10b981;border-color:#10b981;display:flex;align-items:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 5v14M5 12h14"/></svg>
+          Create Node
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/music') %>
+<%- include('../partials/foot') %>
+
+<script>
+async function submitCreateNode(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+
+  const payload = {
+    name: document.getElementById('nName').value.trim(),
+    description: document.getElementById('nDescription').value.trim(),
+    location_id: document.getElementById('nLocation').value,
+    public: document.querySelector('input[name="nodeVisibility"]:checked')?.value || '1',
+    fqdn: document.getElementById('nFQDN').value.trim(),
+    scheme: document.querySelector('input[name="nodeScheme"]:checked')?.value || 'http',
+    behind_proxy: document.querySelector('input[name="nodeProxy"]:checked')?.value || '0',
+    daemonBase: document.getElementById('nDaemonBase').value.trim(),
+    memory: parseInt(document.getElementById('nMemory').value, 10),
+    memory_overallocate: parseInt(document.getElementById('nMemoryOver').value, 10),
+    disk: parseInt(document.getElementById('nDisk').value, 10),
+    disk_overallocate: parseInt(document.getElementById('nDiskOver').value, 10),
+    daemonListen: parseInt(document.getElementById('nDaemonListen').value, 10),
+    daemonSFTP: parseInt(document.getElementById('nDaemonSFTP').value, 10),
+    server_limit: document.getElementById('nServerLimit').value ? parseInt(document.getElementById('nServerLimit').value, 10) : null,
+    initial_ip: document.getElementById('nInitIp').value.trim(),
+    initial_ports: document.getElementById('nInitPorts').value.trim(),
+  };
+
+  try {
+    const res = await VP.api('/admin/nodes/create', {
+      method: 'POST',
+      body: payload
+    });
+    VP.toast('Node created successfully!', 'success');
+    setTimeout(() => {
+      location.href = `/admin/nodes/${res.node.id}`;
+    }, 600);
+  } catch (err) {
+    btn.disabled = false;
+    VP.toast(err.message || 'Failed to create node', 'error');
+  }
+}
+</script>
+

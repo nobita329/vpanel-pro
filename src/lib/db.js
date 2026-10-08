@@ -130,6 +130,10 @@ const defaultSettings = {
   'user.default_ipv4': '2',
   'user.default_snapshots': '5',
   'user.default_backups': '10',
+  'cache.auto_clear_enabled': '1',
+  'cache.auto_clear_interval': '6h',
+  'cache.last_cleared': '',
+  'cache.total_clears': '0',
 };
 
 for (const [k, v] of Object.entries(defaultSettings)) {
@@ -161,6 +165,17 @@ const S = {
     }
     return out;
   },
+  async reload() {
+    await ensureConnected();
+    const allDocs = await collections.settings.find().toArray();
+    for (const [k, v] of Object.entries(defaultSettings)) {
+      settingsCache[k] = v;
+    }
+    for (const doc of allDocs) {
+      settingsCache[doc.key] = doc.value;
+    }
+    return Object.keys(settingsCache).length;
+  },
 };
 
 async function initDb() {
@@ -176,7 +191,8 @@ async function initDb() {
     'network_bridges', 'ip_pools', 'port_forwards', 'firewall_rules',
     'api_keys', 'webhooks', 'audit_events', 'plugins_config',
     'billing_plans', 'billing_invoices', 'billing_coupons',
-    'update_history', 'quotas', 'templates'
+    'update_history', 'quotas', 'templates', 'user_sessions',
+    'nodes', 'node_allocations', 'locations'
   ];
   for (const name of names) {
     collections[name] = dbInstance.collection(name);
@@ -184,6 +200,9 @@ async function initDb() {
 
   try {
     await Promise.all([
+      collections.user_sessions.createIndex({ session_id: 1 }, { unique: true }),
+      collections.user_sessions.createIndex({ user_id: 1 }),
+      collections.user_sessions.createIndex({ last_active_at: -1 }),
       collections.templates.createIndex({ vmid: 1 }, { unique: true, sparse: true }),
       collections.templates.createIndex({ id: 1 }, { unique: true }),
       collections.users.createIndex({ id: 1 }, { unique: true }),

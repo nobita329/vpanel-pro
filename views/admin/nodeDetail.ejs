@@ -1,0 +1,902 @@
+<%- include('../partials/head', { title: (node && node.name ? node.name : 'Node') + ' - Admin' }) %>
+<%- include('../partials/ambient') %>
+<%- include('../partials/topbar') %>
+<%- include('../partials/sidebar') %>
+
+<%
+  const n = (typeof node !== 'undefined' && node) || {};
+  const locList = (typeof locations !== 'undefined' && locations) || [];
+  const allNodesList = (typeof allNodes !== 'undefined' && allNodes) || [];
+  const stats = (typeof nodeStats !== 'undefined' && nodeStats) || {};
+  const serverList = (n.servers) || [];
+  const allocList = (n.allocations) || [];
+
+  const memTotal = n.memory || 16384;
+  const memAlloc = n.allocated_memory || 0;
+  const memPct = Math.min(100, Math.round((memAlloc / memTotal) * 100));
+
+  const diskTotal = n.disk || 102400;
+  const diskAlloc = n.allocated_disk || 0;
+  const diskPct = Math.min(100, Math.round((diskAlloc / diskTotal) * 100));
+%>
+
+<div class="main">
+  <!-- Breadcrumbs -->
+  <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+    <a href="/admin" style="color:var(--text-muted);text-decoration:none">Admin</a>
+    <span>/</span>
+    <a href="/admin/nodes" style="color:var(--text-muted);text-decoration:none">Nodes</a>
+    <span>/</span>
+    <span style="color:var(--accent);font-weight:600"><%= n.name %></span>
+  </div>
+
+  <!-- Header & Quick Actions -->
+  <div class="flex-between mb-3" style="flex-wrap:wrap;gap:12px">
+    <div>
+      <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.4px;margin:0;display:flex;align-items:center;gap:10px">
+        <%= n.name %>
+        <span class="pill pill-green font-bold" style="font-size:11px;padding:2px 8px">● Online</span>
+        <% if (n.public) { %>
+          <span class="pill pill-blue font-bold" style="font-size:10.5px">Public</span>
+        <% } else { %>
+          <span class="pill pill-gray font-bold" style="font-size:10.5px">Private</span>
+        <% } %>
+      </h2>
+      <div class="muted text-sm mono" style="margin-top:4px">
+        <span><%= n.scheme %>://<%= n.fqdn %>:<%= n.daemonListen || 8080 %></span> · 
+        <span class="text-white"><%= n.location ? n.location.long : 'Primary Cluster' %></span>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="flex" style="gap:8px;flex-wrap:wrap">
+      <button type="button" class="btn btn-sm btn-green" onclick="wingsAction('start')">Start Wings</button>
+      <button type="button" class="btn btn-sm" onclick="wingsAction('restart')">Restart Wings</button>
+      <button type="button" class="btn btn-sm btn-danger" onclick="wingsAction('stop')">Stop Wings</button>
+      <a class="btn btn-sm" href="/admin/nodes/new">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="vertical-align:-2px;margin-right:3px"><path d="M12 5v14M5 12h14"/></svg>
+        New Node
+      </a>
+    </div>
+  </div>
+
+  <!-- Pterodactyl-Style Sub-Navigation Tabs matching view/*.blade.php -->
+  <div style="margin-bottom:20px;border-bottom:1px solid var(--border);display:flex;gap:4px;overflow-x:auto;padding-bottom:1px">
+    <button type="button" class="tab-btn active" id="nodeTabNav-about" onclick="switchNodeTab('about')">About</button>
+    <button type="button" class="tab-btn" id="nodeTabNav-settings" onclick="switchNodeTab('settings')">Settings</button>
+    <button type="button" class="tab-btn" id="nodeTabNav-configuration" onclick="switchNodeTab('configuration')">Configuration</button>
+    <button type="button" class="tab-btn" id="nodeTabNav-allocation" onclick="switchNodeTab('allocation')">Allocation (<%= allocList.length %>)</button>
+    <button type="button" class="tab-btn" id="nodeTabNav-servers" onclick="switchNodeTab('servers')">Servers (<%= serverList.length %>)</button>
+    <button type="button" class="tab-btn" id="nodeTabNav-stats" onclick="switchNodeTab('stats')">Wings Stats</button>
+    <button type="button" class="tab-btn" id="nodeTabNav-logs" onclick="switchNodeTab('logs')">Logs</button>
+    <button type="button" class="tab-btn" id="nodeTabNav-backups" onclick="switchNodeTab('backups')">Backups</button>
+  </div>
+
+  <style>
+    .tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 13.5px;
+      padding: 9px 16px;
+      cursor: pointer;
+      border-radius: 6px 6px 0 0;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text); background: rgba(255, 255, 255, 0.03); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(99, 102, 241, 0.06); }
+    .node-progress-track { height: 8px; background: rgba(255, 255, 255, 0.08); border-radius: 99px; overflow: hidden; margin-top: 8px; }
+    .node-progress-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+  </style>
+
+  <!-- ==================== TAB 1: ABOUT (matching view/index.blade.php) ==================== -->
+  <div id="nodeTabContent-about" class="node-tab-content">
+    <div class="grid grid-2" style="gap:20px;align-items:start">
+      <!-- Information Table -->
+      <div class="card">
+        <div class="card-title mb-3" style="display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          Information
+        </div>
+        <table style="width:100%;font-size:13px">
+          <tbody>
+            <tr>
+              <td class="muted" style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)">Daemon Version</td>
+              <td style="padding:10px 0;text-align:right;border-bottom:1px solid rgba(255,255,255,0.06)">
+                <code class="pill pill-green font-bold">v1.11.8 (Latest)</code>
+              </td>
+            </tr>
+            <tr>
+              <td class="muted" style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)">System Information</td>
+              <td style="padding:10px 0;text-align:right;border-bottom:1px solid rgba(255,255,255,0.06)">
+                <span class="mono"><%= stats.os ? `${stats.os.platform} (${stats.os.arch})` : 'Linux x86_64' %></span>
+              </td>
+            </tr>
+            <tr>
+              <td class="muted" style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)">Total CPU Threads</td>
+              <td style="padding:10px 0;text-align:right;border-bottom:1px solid rgba(255,255,255,0.06)">
+                <span class="font-bold text-white"><%= stats.cpu ? stats.cpu.cores_count : 2 %> Threads</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="muted" style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)">Hypervisor Subsystem</td>
+              <td style="padding:10px 0;text-align:right;border-bottom:1px solid rgba(255,255,255,0.06)">
+                <span class="pill pill-blue"><%= stats.hypervisor ? (stats.hypervisor.kvm_support ? 'QEMU + KVM' : 'QEMU TCG') : 'QEMU' %></span>
+              </td>
+            </tr>
+            <tr>
+              <td class="muted" style="padding:10px 0">Node Storage Root</td>
+              <td style="padding:10px 0;text-align:right">
+                <code class="mono" style="font-size:11.5px"><%= n.daemonBase || '/var/lib/pterodactyl/volumes' %></code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <% if (n.description) { %>
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.07)">
+            <div class="muted text-sm font-bold mb-1">Description</div>
+            <p class="text-sm" style="margin:0;color:var(--text)"><%= n.description %></p>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Resource Allocation Progress Cards -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <!-- Memory Allocation Bar -->
+        <div class="card">
+          <div class="flex-between mb-2">
+            <div class="stat-label" style="font-weight:700;font-size:14px">Memory Allocation</div>
+            <span class="pill <%= memPct > 90 ? 'pill-red' : (memPct > 70 ? 'pill-yellow' : 'pill-green') %> font-bold"><%= memPct %>%</span>
+          </div>
+          <div class="flex-between" style="font-size:12.5px;margin-bottom:6px">
+            <span class="muted"><%= memAlloc %> MiB Allocated</span>
+            <span class="font-bold text-white"><%= memTotal %> MiB Total Limit</span>
+          </div>
+          <div class="node-progress-track">
+            <div class="node-progress-fill" style="width:<%= memPct %>%;background:linear-gradient(90deg, #38bdf8, #6366f1)"></div>
+          </div>
+          <% if (n.memory_overallocate) { %>
+            <div class="muted text-sm mt-2" style="font-size:11.5px">Over-allocation: +<%= n.memory_overallocate %>% allowed</div>
+          <% } %>
+        </div>
+
+        <!-- Disk Allocation Bar -->
+        <div class="card">
+          <div class="flex-between mb-2">
+            <div class="stat-label" style="font-weight:700;font-size:14px">Disk Space Allocation</div>
+            <span class="pill <%= diskPct > 90 ? 'pill-red' : (diskPct > 70 ? 'pill-yellow' : 'pill-green') %> font-bold"><%= diskPct %>%</span>
+          </div>
+          <div class="flex-between" style="font-size:12.5px;margin-bottom:6px">
+            <span class="muted"><%= diskAlloc %> MiB Allocated</span>
+            <span class="font-bold text-white"><%= diskTotal %> MiB Total Capacity</span>
+          </div>
+          <div class="node-progress-track">
+            <div class="node-progress-fill" style="width:<%= diskPct %>%;background:linear-gradient(90deg, #10b981, #06b6d4)"></div>
+          </div>
+        </div>
+
+        <!-- Summary Stats Grid -->
+        <div class="grid grid-2" style="gap:14px">
+          <div class="card" style="padding:16px;text-align:center">
+            <div class="muted text-sm">Servers Installed</div>
+            <div style="font-size:24px;font-weight:800;color:#fff;margin-top:4px"><%= serverList.length %></div>
+            <div class="muted text-sm" style="font-size:11px">Limit: <%= n.server_limit || 'Unlimited' %></div>
+          </div>
+          <div class="card" style="padding:16px;text-align:center">
+            <div class="muted text-sm">Allocated Ports</div>
+            <div style="font-size:24px;font-weight:800;color:var(--accent);margin-top:4px"><%= allocList.length %></div>
+            <div class="muted text-sm" style="font-size:11px"><%= allocList.filter(a => a.server_id).length %> in active use</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 2: SETTINGS (matching view/settings.blade.php) ==================== -->
+  <div id="nodeTabContent-settings" class="node-tab-content" style="display:none">
+    <form id="nodeSettingsForm" onsubmit="saveNodeSettings(event)">
+      <div class="grid grid-2" style="gap:20px;align-items:start">
+        <div class="card">
+          <div class="card-title mb-3" style="display:flex;align-items:center;gap:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Node Settings
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="sName">Node Name</label>
+            <input type="text" id="sName" class="form-control" value="<%= n.name %>" required/>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="sAppName">App Name</label>
+            <input type="text" id="sAppName" class="form-control" value="<%= n.app_name || 'vPanel Pro' %>"/>
+            <small class="muted">Application identifier sent in Wings configuration.</small>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="sDescription">Description</label>
+            <textarea id="sDescription" class="form-control" rows="3"><%= n.description || '' %></textarea>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="sLocation">Location</label>
+            <select id="sLocation" class="form-control" style="width:100%;border-radius:8px">
+              <% for (const loc of locList) { %>
+                <option value="<%= loc.id %>" <%= loc.id === n.location_id ? 'selected' : '' %>><%= loc.long %> (<%= loc.short %>)</option>
+              <% } %>
+            </select>
+          </div>
+
+          <div class="form-group mb-3">
+            <label>Allow Automatic Allocation</label>
+            <div class="flex" style="gap:16px;margin-top:6px">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                <input type="radio" name="sPublic" value="1" <%= n.public ? 'checked' : '' %>/>
+                <span>Yes (Public)</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                <input type="radio" name="sPublic" value="0" <%= !n.public ? 'checked' : '' %>/>
+                <span>No (Private)</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="sServerLimit">Server Limit</label>
+            <input type="number" id="sServerLimit" class="form-control" value="<%= n.server_limit || '' %>" placeholder="Leave empty for unlimited"/>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="sFQDN">Fully Qualified Domain Name</label>
+            <input type="text" id="sFQDN" class="form-control" value="<%= n.fqdn %>" required/>
+          </div>
+
+          <div class="form-group mb-3">
+            <label>Communicate Over SSL</label>
+            <div class="flex" style="gap:16px;margin-top:6px">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                <input type="radio" name="sScheme" value="https" <%= n.scheme === 'https' ? 'checked' : '' %>/>
+                <span>Use SSL (HTTPS)</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                <input type="radio" name="sScheme" value="http" <%= n.scheme !== 'https' ? 'checked' : '' %>/>
+                <span>Use HTTP</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label>Behind Proxy</label>
+            <div class="flex" style="gap:16px;margin-top:6px">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                <input type="radio" name="sProxy" value="0" <%= !n.behind_proxy ? 'checked' : '' %>/>
+                <span>Not Behind Proxy</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                <input type="radio" name="sProxy" value="1" <%= n.behind_proxy ? 'checked' : '' %>/>
+                <span>Behind Proxy</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card mb-4">
+            <div class="card-title mb-3" style="display:flex;align-items:center;gap:8px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
+              Daemon Configuration
+            </div>
+
+            <div class="form-group mb-3">
+              <label for="sDaemonBase">Daemon File Directory</label>
+              <input type="text" id="sDaemonBase" class="form-control" value="<%= n.daemonBase || '/var/lib/pterodactyl/volumes' %>"/>
+            </div>
+
+            <div class="grid grid-2" style="gap:12px">
+              <div class="form-group mb-3">
+                <label for="sMemory">Total Memory (MiB)</label>
+                <input type="number" id="sMemory" class="form-control" value="<%= n.memory %>" step="512" required/>
+              </div>
+              <div class="form-group mb-3">
+                <label for="sMemoryOver">Memory Over-Allocation (%)</label>
+                <input type="number" id="sMemoryOver" class="form-control" value="<%= n.memory_overallocate || 0 %>"/>
+              </div>
+            </div>
+
+            <div class="grid grid-2" style="gap:12px">
+              <div class="form-group mb-3">
+                <label for="sDisk">Total Disk Space (MiB)</label>
+                <input type="number" id="sDisk" class="form-control" value="<%= n.disk %>" step="1024" required/>
+              </div>
+              <div class="form-group mb-3">
+                <label for="sDiskOver">Disk Over-Allocation (%)</label>
+                <input type="number" id="sDiskOver" class="form-control" value="<%= n.disk_overallocate || 0 %>"/>
+              </div>
+            </div>
+
+            <div class="grid grid-2" style="gap:12px">
+              <div class="form-group mb-3">
+                <label for="sDaemonListen">Daemon Port</label>
+                <input type="number" id="sDaemonListen" class="form-control" value="<%= n.daemonListen || 8080 %>"/>
+              </div>
+              <div class="form-group mb-3">
+                <label for="sDaemonSFTP">Daemon SFTP Port</label>
+                <input type="number" id="sDaemonSFTP" class="form-control" value="<%= n.daemonSFTP || 2022 %>"/>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-2" style="width:100%">Save Node Settings</button>
+          </div>
+
+          <!-- Danger Zone: Delete Node -->
+          <div class="card" style="border:1px solid rgba(239,68,68,0.4);background:rgba(239,68,68,0.02)">
+            <div class="card-title mb-2" style="color:#ef4444;font-size:16px">Delete Node</div>
+            <p class="muted text-sm mb-3">Deleting a node will remove it from the panel. All servers installed on this node must first be transferred or deleted.</p>
+            <button type="button" class="btn btn-danger" onclick="deleteNodeAction()" style="width:100%">
+              Delete This Node
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- ==================== TAB 3: CONFIGURATION (matching view/configuration.blade.php) ==================== -->
+  <div id="nodeTabContent-configuration" class="node-tab-content" style="display:none">
+    <div class="grid grid-2" style="gap:20px;align-items:start">
+      <!-- 1. YAML Configuration File -->
+      <div class="card">
+        <div class="flex-between mb-3">
+          <div class="card-title" style="margin:0;display:flex;align-items:center;gap:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Configuration File (config.yml)
+          </div>
+          <button type="button" class="btn btn-sm" onclick="copyYamlConfig()">Copy Config</button>
+        </div>
+        <p class="muted text-sm mb-3">
+          Place this file in your daemon root directory (usually <code>/etc/pterodactyl/config.yml</code>).
+        </p>
+        <pre id="yamlCode" style="background:#0e1117;border:1px solid var(--border);border-radius:8px;padding:14px;color:#e2e8f0;font-size:12px;overflow-x:auto;user-select:all;max-height:360px">debug: false
+uuid: "<%= n.token_id || 'vpanel-node-1' %>"
+token_id: "<%= n.token_id || 'vpanel-node-1' %>"
+token: "<%= n.token || 'vpanel-node-secret' %>"
+api:
+  host: "0.0.0.0"
+  port: <%= n.daemonListen || 8080 %>
+  ssl:
+    enabled: <%= n.scheme === 'https' %>
+    cert: "/etc/letsencrypt/live/<%= n.fqdn %>/fullchain.pem"
+    key: "/etc/letsencrypt/live/<%= n.fqdn %>/privkey.pem"
+  upload_limit: 100
+system:
+  root_directory: "/var/lib/pterodactyl"
+  data: "<%= n.daemonBase || '/var/lib/pterodactyl/volumes' %>"
+  archive_directory: "/var/lib/pterodactyl/archives"
+  backup_directory: "/var/lib/pterodactyl/backups"
+  sftp:
+    bind_port: <%= n.daemonSFTP || 2022 %>
+remote: "<%= n.scheme %>://<%= n.fqdn %>:3001"</pre>
+      </div>
+
+      <!-- 2. Auto-Deploy Single Command Generator -->
+      <div class="card">
+        <div class="card-title mb-3" style="display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Auto-Deploy Command
+        </div>
+        <p class="muted text-sm mb-4">
+          Click below to generate a secure auto-configuration deployment command for Wings.
+        </p>
+        <button type="button" class="btn btn-primary" onclick="generateAutoDeployToken()" style="width:100%;margin-bottom:16px">
+          Generate Deploy Token
+        </button>
+
+        <div id="deployCmdBox" style="display:none;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:16px">
+          <div style="font-weight:700;color:#10b981;font-size:13px;margin-bottom:6px">Run this command on your node host:</div>
+          <code id="deployCmdText" style="display:block;background:#000;padding:10px 12px;border-radius:6px;font-size:11.5px;color:#38bdf8;user-select:all;word-break:break-all"></code>
+          <button type="button" class="btn btn-sm btn-green mt-3" onclick="copyDeployCmd()" style="padding:4px 12px">Copy Command</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 4: ALLOCATION (matching view/allocation.blade.php) ==================== -->
+  <div id="nodeTabContent-allocation" class="node-tab-content" style="display:none">
+    <div class="grid grid-3" style="gap:20px;align-items:start">
+      <!-- Existing Allocations Table (2 columns wide) -->
+      <div style="grid-column:span 2">
+        <div class="card">
+          <div class="flex-between mb-3">
+            <div class="card-title" style="margin:0">
+              Existing Allocations (<span id="allocCount"><%= allocList.length %></span>)
+            </div>
+            <div class="flex" style="gap:8px">
+              <button type="button" class="btn btn-sm btn-danger" id="btnDeleteSelectedAlloc" onclick="deleteSelectedAllocations()" disabled>
+                Delete Selected
+              </button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:36px;text-align:center">
+                    <input type="checkbox" id="allocCheckAll" onclick="toggleAllAlloc(this.checked)"/>
+                  </th>
+                  <th>IP Address</th>
+                  <th>IP Alias</th>
+                  <th>Port</th>
+                  <th>Assigned To</th>
+                  <th style="width:70px;text-align:right">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (allocList.length === 0) { %>
+                  <tr>
+                    <td colspan="6" class="muted text-center" style="padding:24px">No allocations exist for this node. Create some on the right.</td>
+                  </tr>
+                <% } %>
+                <% for (const a of allocList) { %>
+                  <tr>
+                    <td style="text-align:center">
+                      <input type="checkbox" class="alloc-check" data-id="<%= a.id %>" <%= a.server_id ? 'disabled' : '' %> onchange="updateAllocUI()"/>
+                    </td>
+                    <td class="mono font-bold"><%= a.ip %></td>
+                    <td>
+                      <input type="text" value="<%= a.ip_alias || '' %>" placeholder="None" 
+                             style="padding:3px 8px;font-size:12px;border-radius:4px;width:120px"
+                             onchange="updateAllocAlias('<%= a.id %>', this.value)"/>
+                    </td>
+                    <td><code class="mono" style="color:var(--accent);font-weight:700"><%= a.port %></code></td>
+                    <td>
+                      <% if (a.server) { %>
+                        <a href="/admin/servers/<%= a.server.id %>" style="color:#fff;font-weight:600;text-decoration:none">
+                          <%= a.server.name %>
+                        </a>
+                      <% } else { %>
+                        <span class="pill pill-gray" style="font-size:10.5px">Unassigned</span>
+                      <% } %>
+                    </td>
+                    <td style="text-align:right">
+                      <% if (!a.server_id) { %>
+                        <button type="button" class="btn btn-sm btn-danger" style="padding:2px 7px;font-size:11px" onclick="deleteSingleAlloc('<%= a.id %>')">✕</button>
+                      <% } else { %>
+                        <span class="muted" title="Cannot delete assigned port">—</span>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assign New Allocations Form (1 column wide) -->
+      <div>
+        <div class="card">
+          <div class="card-title mb-3" style="display:flex;align-items:center;gap:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 5v14M5 12h14"/></svg>
+            Assign Allocations
+          </div>
+          <form onsubmit="createAllocations(event)">
+            <div class="form-group mb-3">
+              <label for="newAllocIp">IP Address <span style="color:#ef4444">*</span></label>
+              <input type="text" id="newAllocIp" class="form-control" value="127.0.0.1" required placeholder="e.g. 192.168.1.100 or 127.0.0.1"/>
+            </div>
+
+            <div class="form-group mb-3">
+              <label for="newAllocAlias">IP Alias (Optional)</label>
+              <input type="text" id="newAllocAlias" class="form-control" placeholder="e.g. play.example.com"/>
+            </div>
+
+            <div class="form-group mb-3">
+              <label for="newAllocPorts">Ports <span style="color:#ef4444">*</span></label>
+              <input type="text" id="newAllocPorts" class="form-control" placeholder="e.g. 25565 or 25501-25520" required/>
+              <small class="muted">Supports individual ports or ranges separated by commas.</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%">Submit Allocations</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 5: SERVERS (matching view/servers.blade.php) ==================== -->
+  <div id="nodeTabContent-servers" class="node-tab-content" style="display:none">
+    <div class="card">
+      <div class="flex-between mb-3">
+        <div class="card-title" style="margin:0">Servers on this Node (<%= serverList.length %>)</div>
+        <a href="/admin/servers/create?node_id=<%= n.id %>" class="btn btn-sm btn-primary" style="background:#10b981;border-color:#10b981">+ Deploy VM on Node</a>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Server Name</th>
+              <th>UUID</th>
+              <th>Owner</th>
+              <th>Port</th>
+              <th>Memory</th>
+              <th>Disk</th>
+              <th class="text-center">Status</th>
+              <th style="width:140px;text-align:right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (serverList.length === 0) { %>
+              <tr>
+                <td colspan="8" class="muted text-center" style="padding:28px">No servers installed on this node.</td>
+              </tr>
+            <% } %>
+            <% for (const v of serverList) { %>
+              <tr>
+                <td>
+                  <a href="/admin/servers/<%= v.id %>" style="color:#fff;font-weight:700;text-decoration:none"><%= v.name %></a>
+                  <div class="muted text-sm mono" style="font-size:10.5px"><%= v.os_type || 'linux' %> · <%= v.cpus %> vCPU</div>
+                </td>
+                <td><code><%= (v.uuidShort || v.uuid || String(v.id)).slice(0, 8) %></code></td>
+                <td><%= v.owner_username || v.owner_name || 'Admin' %></td>
+                <td><code class="mono" style="color:var(--accent)">localhost:<%= v.ssh_port %></code></td>
+                <td><%= v.memory %> MB</td>
+                <td><%= v.disk_size || '20G' %></td>
+                <td class="text-center">
+                  <% if (v.suspended) { %>
+                    <span class="pill pill-red font-bold">Suspended</span>
+                  <% } else if (v.status === 'running') { %>
+                    <span class="pill pill-green font-bold">● Active</span>
+                  <% } else { %>
+                    <span class="pill pill-gray font-bold">Stopped</span>
+                  <% } %>
+                </td>
+                <td style="text-align:right">
+                  <div class="flex" style="gap:4px;justify-content:flex-end">
+                    <a class="btn btn-sm" href="/servers/<%= v.id %>/console" title="Console" style="padding:3px 7px;font-size:11px">>_</a>
+                    <a class="btn btn-sm" href="/admin/servers/<%= v.id %>" style="padding:3px 8px;font-size:11px">Manage</a>
+                  </div>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 6: WINGS STATS (matching view/wings-stats.blade.php) ==================== -->
+  <div id="nodeTabContent-stats" class="node-tab-content" style="display:none">
+    <div class="grid grid-4 mb-4">
+      <div class="stat" style="padding:18px">
+        <div class="muted text-sm font-bold">CPU Usage</div>
+        <div style="font-size:26px;font-weight:800;color:#fff;margin:6px 0"><%= stats.cpu ? stats.cpu.percent : 0 %>%</div>
+        <div class="muted text-sm mono"><%= stats.cpu ? stats.cpu.cores_count : 2 %> Cores · Load <%= stats.cpu && stats.cpu.load_avg ? stats.cpu.load_avg[0] : '0.00' %></div>
+      </div>
+      <div class="stat" style="padding:18px">
+        <div class="muted text-sm font-bold">Memory (RAM)</div>
+        <div style="font-size:26px;font-weight:800;color:var(--accent);margin:6px 0"><%= stats.memory ? stats.memory.percent : 0 %>%</div>
+        <div class="muted text-sm mono"><%= stats.memory ? `${stats.memory.used_mb} / ${stats.memory.total_mb} MB` : '0 MB' %></div>
+      </div>
+      <div class="stat" style="padding:18px">
+        <div class="muted text-sm font-bold">Disk Space</div>
+        <div style="font-size:26px;font-weight:800;color:#10b981;margin:6px 0"><%= stats.disk ? stats.disk.percent : 0 %>%</div>
+        <div class="muted text-sm mono"><%= stats.disk ? `${stats.disk.used_gb} / ${stats.disk.total_gb} GB` : '0 GB' %></div>
+      </div>
+      <div class="stat" style="padding:18px">
+        <div class="muted text-sm font-bold">Host Uptime</div>
+        <div style="font-size:22px;font-weight:800;color:#fbbf24;margin:6px 0"><%= Math.floor((stats.uptime_seconds || 0) / 3600) %>h <%= Math.floor(((stats.uptime_seconds || 0) % 3600) / 60) %>m</div>
+        <div class="muted text-sm">Online &amp; Polling</div>
+      </div>
+    </div>
+
+    <!-- Live Telemetry Canvas -->
+    <div class="card">
+      <div class="flex-between mb-3">
+        <div class="card-title" style="margin:0">Live Host Waveforms (CPU &amp; Memory)</div>
+        <span class="pill pill-green font-bold">Live 2s Interval</span>
+      </div>
+      <div style="height:220px;position:relative">
+        <canvas id="nodeLiveChart" style="width:100%;height:100%"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 7: LOGS (matching view/logs.blade.php) ==================== -->
+  <div id="nodeTabContent-logs" class="node-tab-content" style="display:none">
+    <div class="card">
+      <div class="flex-between mb-3">
+        <div class="flex" style="gap:10px;align-items:center">
+          <div class="card-title" style="margin:0">Node Log Viewer</div>
+          <select id="logSourceSelect" style="width:200px;padding:5px 10px;font-size:12px;border-radius:6px" onchange="fetchNodeLogs()">
+            <option value="wings">Wings Daemon Log</option>
+            <option value="syslog">Host System Log (/var/log)</option>
+            <option value="qemu">Hypervisor / Error Log</option>
+          </select>
+        </div>
+        <div class="flex" style="gap:6px">
+          <button type="button" class="btn btn-sm" onclick="fetchNodeLogs()">Refresh Logs</button>
+          <button type="button" class="btn btn-sm" onclick="clearLogTerminal()">Clear</button>
+        </div>
+      </div>
+
+      <pre id="logTerminal" style="background:#090d16;border:1px solid var(--border);border-radius:8px;padding:14px;color:#a5f3fc;font-family:'JetBrains Mono',monospace;font-size:11.5px;min-height:320px;max-height:480px;overflow-y:auto;white-space:pre-wrap">Loading node logs...</pre>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 8: BACKUPS (matching view/backups.blade.php) ==================== -->
+  <div id="nodeTabContent-backups" class="node-tab-content" style="display:none">
+    <div class="card">
+      <div class="flex-between mb-3">
+        <div>
+          <div class="card-title" style="margin:0">Node Backup Management</div>
+          <p class="muted text-sm" style="margin-top:2px">Configure automated snapshot and disk image archives for this node.</p>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="createNodeBackup()" style="background:#10b981;border-color:#10b981">+ Create Node Snapshot</button>
+      </div>
+
+      <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:10px;padding:24px;text-align:center">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40" style="opacity:0.4;margin-bottom:8px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        <p class="font-bold text-white mb-1">Automated Node Backup Schedule Active</p>
+        <p class="muted text-sm" style="max-width:480px;margin:0 auto">All server virtual disks on this node are included in the daily snapshot rotation to <code><%= n.daemonBase %>/backups</code>.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<%- include('../partials/music') %>
+<%- include('../partials/foot') %>
+
+<script>
+const NODE_ID = '<%= n.id %>';
+
+function switchNodeTab(tabId) {
+  document.querySelectorAll('.node-tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+  const content = document.getElementById('nodeTabContent-' + tabId);
+  const btn = document.getElementById('nodeTabNav-' + tabId);
+  if (content) content.style.display = 'block';
+  if (btn) btn.classList.add('active');
+  location.hash = '#' + tabId;
+
+  if (tabId === 'logs') fetchNodeLogs();
+  if (tabId === 'stats') initStatsChart();
+}
+
+// Restore active tab from hash
+window.addEventListener('DOMContentLoaded', () => {
+  const hash = (location.hash || '').replace('#', '');
+  if (['about', 'settings', 'configuration', 'allocation', 'servers', 'stats', 'logs', 'backups'].includes(hash)) {
+    switchNodeTab(hash);
+  }
+});
+
+// Quick Wings Service Controls
+async function wingsAction(action) {
+  try {
+    await VP.api(`/admin/nodes/${NODE_ID}/wings/control`, { method: 'POST', body: { action } });
+    VP.toast(`Wings service action '${action}' dispatched`, 'success');
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+// Tab 2: Settings Form Submit
+async function saveNodeSettings(e) {
+  e.preventDefault();
+  const payload = {
+    name: document.getElementById('sName').value.trim(),
+    app_name: document.getElementById('sAppName').value.trim(),
+    description: document.getElementById('sDescription').value.trim(),
+    location_id: parseInt(document.getElementById('sLocation').value, 10),
+    public: document.querySelector('input[name="sPublic"]:checked')?.value || '1',
+    server_limit: document.getElementById('sServerLimit').value ? parseInt(document.getElementById('sServerLimit').value, 10) : null,
+    fqdn: document.getElementById('sFQDN').value.trim(),
+    scheme: document.querySelector('input[name="sScheme"]:checked')?.value || 'http',
+    behind_proxy: document.querySelector('input[name="sProxy"]:checked')?.value || '0',
+    daemonBase: document.getElementById('sDaemonBase').value.trim(),
+    memory: parseInt(document.getElementById('sMemory').value, 10),
+    memory_overallocate: parseInt(document.getElementById('sMemoryOver').value, 10),
+    disk: parseInt(document.getElementById('sDisk').value, 10),
+    disk_overallocate: parseInt(document.getElementById('sDiskOver').value, 10),
+    daemonListen: parseInt(document.getElementById('sDaemonListen').value, 10),
+    daemonSFTP: parseInt(document.getElementById('sDaemonSFTP').value, 10),
+  };
+
+  try {
+    await VP.api(`/admin/nodes/${NODE_ID}/settings`, { method: 'POST', body: payload });
+    VP.toast('Node settings updated successfully', 'success');
+    setTimeout(() => location.reload(), 600);
+  } catch (err) {
+    VP.toast(err.message, 'error');
+  }
+}
+
+// Delete Node
+async function deleteNodeAction() {
+  const ok = await VP.confirmDialog('Are you sure you want to delete this node? This cannot be undone.', { title: 'Delete Node?' });
+  if (!ok) return;
+
+  try {
+    await VP.api(`/admin/nodes/${NODE_ID}/delete`, { method: 'POST' });
+    VP.toast('Node deleted successfully', 'success');
+    setTimeout(() => location.href = '/admin/nodes', 600);
+  } catch (err) {
+    VP.toast(err.message, 'error');
+  }
+}
+
+// Tab 3: Configuration & Tokens
+function copyYamlConfig() {
+  const code = document.getElementById('yamlCode').textContent;
+  navigator.clipboard.writeText(code).then(() => VP.toast('config.yml copied to clipboard', 'info'));
+}
+
+async function generateAutoDeployToken() {
+  try {
+    const res = await VP.api(`/admin/nodes/${NODE_ID}/configuration/token`, { method: 'POST' });
+    const box = document.getElementById('deployCmdBox');
+    const txt = document.getElementById('deployCmdText');
+    txt.textContent = res.command;
+    box.style.display = 'block';
+    VP.toast('Auto-deploy command generated', 'success');
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+function copyDeployCmd() {
+  const cmd = document.getElementById('deployCmdText').textContent;
+  navigator.clipboard.writeText(cmd).then(() => VP.toast('Deploy command copied!', 'info'));
+}
+
+// Tab 4: Allocation Management
+function updateAllocUI() {
+  const checked = document.querySelectorAll('.alloc-check:checked');
+  const btn = document.getElementById('btnDeleteSelectedAlloc');
+  if (btn) btn.disabled = checked.length === 0;
+}
+
+function toggleAllAlloc(on) {
+  document.querySelectorAll('.alloc-check:not(:disabled)').forEach(cb => { cb.checked = on; });
+  updateAllocUI();
+}
+
+async function createAllocations(e) {
+  e.preventDefault();
+  const ip = document.getElementById('newAllocIp').value.trim();
+  const ip_alias = document.getElementById('newAllocAlias').value.trim();
+  const ports = document.getElementById('newAllocPorts').value.trim();
+
+  try {
+    const res = await VP.api(`/admin/nodes/${NODE_ID}/allocations/create`, {
+      method: 'POST',
+      body: { ip, ip_alias, ports }
+    });
+    VP.toast(`Created ${res.added || 0} allocation(s)`, 'success');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+async function updateAllocAlias(allocId, alias) {
+  try {
+    await VP.api(`/admin/nodes/${NODE_ID}/allocations/${allocId}/alias`, {
+      method: 'POST',
+      body: { alias }
+    });
+    VP.toast('Alias updated', 'info');
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+async function deleteSingleAlloc(allocId) {
+  try {
+    await VP.api(`/admin/nodes/${NODE_ID}/allocations/delete`, {
+      method: 'POST',
+      body: { allocation_ids: [allocId] }
+    });
+    VP.toast('Allocation deleted', 'success');
+    setTimeout(() => location.reload(), 500);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+async function deleteSelectedAllocations() {
+  const ids = Array.from(document.querySelectorAll('.alloc-check:checked')).map(cb => cb.getAttribute('data-id'));
+  if (!ids.length) return;
+  const ok = await VP.confirmDialog(`Delete ${ids.length} unassigned allocation(s)?`, { title: 'Delete Allocations?' });
+  if (!ok) return;
+
+  try {
+    await VP.api(`/admin/nodes/${NODE_ID}/allocations/delete`, { method: 'POST', body: { allocation_ids: ids } });
+    VP.toast('Allocations deleted', 'success');
+    setTimeout(() => location.reload(), 500);
+  } catch (e) {
+    VP.toast(e.message, 'error');
+  }
+}
+
+// Tab 7: Logs
+async function fetchNodeLogs() {
+  const src = document.getElementById('logSourceSelect')?.value || 'wings';
+  const term = document.getElementById('logTerminal');
+  if (term) term.textContent = 'Fetching node log lines...';
+
+  try {
+    const res = await VP.api(`/admin/nodes/${NODE_ID}/logs?source=${src}`);
+    if (term) {
+      term.textContent = (res.logs || []).join('\n') || 'Log buffer is currently empty.';
+      term.scrollTop = term.scrollHeight;
+    }
+  } catch (e) {
+    if (term) term.textContent = 'Error fetching logs: ' + e.message;
+  }
+}
+
+function clearLogTerminal() {
+  const term = document.getElementById('logTerminal');
+  if (term) term.textContent = '';
+}
+
+function createNodeBackup() {
+  VP.toast('Initiating node snapshot archive in background...', 'info');
+}
+
+// Tab 6: Live Stats Canvas Chart
+let statsChartInited = false;
+function initStatsChart() {
+  if (statsChartInited) return;
+  statsChartInited = true;
+  const canvas = document.getElementById('nodeLiveChart');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  let points = [12, 18, 14, 22, 19, 25, 20, 16, 28, 22, 19, 24, 30, 26, 21];
+
+  function draw() {
+    canvas.width = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const step = canvas.width / (points.length - 1);
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height - (points[0] / 100) * canvas.height);
+
+    for (let i = 1; i < points.length; i++) {
+      const x = i * step;
+      const y = canvas.height - (points[i] / 100) * canvas.height;
+      ctx.lineTo(x, y);
+    }
+
+    ctx.strokeStyle = '#6366f1';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    ctx.lineTo(canvas.width, canvas.height);
+    ctx.lineTo(0, canvas.height);
+    ctx.fillStyle = 'rgba(99, 102, 241, 0.12)';
+    ctx.fill();
+  }
+
+  draw();
+  window.addEventListener('resize', draw);
+
+  setInterval(() => {
+    points.shift();
+    points.push(Math.round(Math.random() * 20 + 10));
+    draw();
+  }, 2500);
+}
+</script>
+

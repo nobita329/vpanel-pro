@@ -114,6 +114,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="vertical-align:-2px;margin-right:6px"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 10 10 0 0 0 9.54-13.88A10 10 0 0 0 12 2z"/></svg>
       Customization &amp; Background
     </button>
+    <button class="tab arix-nav-glow" data-tab="arix" onclick="showTab('arix')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="vertical-align:-2px;margin-right:6px"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="m17.8 11.8 1.4 1.4"/><path d="m17.8 6.2 1.4-1.4"/><path d="m12.2 11.8-1.4 1.4"/><path d="m12.2 6.2-1.4-1.4"/><path d="M9 21 3 15"/></svg>
+      Arix Theme
+    </button>
     <button class="tab" data-tab="security" onclick="showTab('security')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="vertical-align:-2px;margin-right:6px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       Security
@@ -125,6 +129,10 @@
     <button class="tab" data-tab="mail" onclick="showTab('mail')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="vertical-align:-2px;margin-right:6px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
       Email (SMTP)
+    </button>
+    <button class="tab" data-tab="cache" onclick="showTab('cache')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="vertical-align:-2px;margin-right:6px"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      Cache &amp; Performance
     </button>
   </div>
 
@@ -586,6 +594,294 @@
           </select>
         </div>
         <button class="btn btn-primary" type="submit">Save SMTP</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ CACHE & PERFORMANCE ============ -->
+  <div class="tab-pane" id="tab-cache" style="display:none">
+    <% const cStatus = (typeof cacheStatus !== 'undefined' && cacheStatus) ? cacheStatus : null; %>
+    <!-- Live Metrics Grid -->
+    <div class="grid grid-4 mb-4" style="gap:14px">
+      <div class="card" style="padding:18px;background:rgba(0,0,0,0.35);border:1px solid var(--border)">
+        <div class="muted text-sm font-bold" style="text-transform:uppercase;letter-spacing:0.5px">Process Heap</div>
+        <div style="font-size:24px;font-weight:800;color:var(--accent);margin:6px 0" id="cacheHeapVal">
+          <%= (cStatus && cStatus.memory) ? cStatus.memory.heap_used : 0 %> MB
+        </div>
+        <div class="muted text-sm">of <%= (cStatus && cStatus.memory) ? cStatus.memory.heap_total : 0 %> MB allocated</div>
+      </div>
+
+      <div class="card" style="padding:18px;background:rgba(0,0,0,0.35);border:1px solid var(--border)">
+        <div class="muted text-sm font-bold" style="text-transform:uppercase;letter-spacing:0.5px">Query &amp; Media Cache</div>
+        <div style="font-size:24px;font-weight:800;color:#10b981;margin:6px 0" id="cacheWpVal">
+          <%= (cStatus && cStatus.wallpaper_cache_size) || 0 %>
+        </div>
+        <div class="muted text-sm">Cached queries &amp; buffers</div>
+      </div>
+
+      <div class="card" style="padding:18px;background:rgba(0,0,0,0.35);border:1px solid var(--border)">
+        <div class="muted text-sm font-bold" style="text-transform:uppercase;letter-spacing:0.5px">Active Sessions</div>
+        <div style="font-size:24px;font-weight:800;color:#818cf8;margin:6px 0" id="cacheSessVal">
+          <%= (cStatus && cStatus.active_sessions) || 0 %>
+        </div>
+        <div class="muted text-sm">Valid user session tokens</div>
+      </div>
+
+      <div class="card" style="padding:18px;background:rgba(0,0,0,0.35);border:1px solid var(--border)">
+        <div class="muted text-sm font-bold" style="text-transform:uppercase;letter-spacing:0.5px">Total Clears</div>
+        <div style="font-size:24px;font-weight:800;color:#f59e0b;margin:6px 0" id="cacheClearsVal">
+          <%= (cStatus && cStatus.total_clears) || 0 %>
+        </div>
+        <div class="muted text-sm" id="cacheLastTime">
+          Last: <%= (cStatus && cStatus.last_cleared && cStatus.last_cleared !== 'Never') ? new Date(cStatus.last_cleared).toLocaleTimeString() : 'Never' %>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="gap:20px;align-items:start">
+      <!-- Auto Cache Clear Settings Card -->
+      <div class="card" style="padding:24px">
+        <div class="card-title mb-2" style="display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Scheduled Auto Cache Clear
+        </div>
+        <p class="muted text-sm mb-4">
+          Automatically frees system buffers, prunes stale sessions, expired authentication tokens, and optimizes database settings.
+        </p>
+
+        <%
+          const autoClearOn = (cStatus && cStatus.auto_clear_enabled) || (all['cache.auto_clear_enabled'] !== '0');
+          const autoInterval = (cStatus && cStatus.auto_clear_interval) || (all['cache.auto_clear_interval'] || '6h');
+        %>
+
+        <div class="form-group mb-3">
+          <label>Auto Clear Status</label>
+          <select id="autoCacheEnabled" class="form-control" style="width:100%;padding:10px;border-radius:8px">
+            <option value="1" <%= autoClearOn ? 'selected' : '' %>>Enabled (Active Background Task)</option>
+            <option value="0" <%= !autoClearOn ? 'selected' : '' %>>Disabled</option>
+          </select>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Execution Frequency / Interval</label>
+          <select id="autoCacheInterval" class="form-control" style="width:100%;padding:10px;border-radius:8px">
+            <option value="30m" <%= autoInterval === '30m' ? 'selected' : '' %>>Every 30 Minutes</option>
+            <option value="1h" <%= autoInterval === '1h' ? 'selected' : '' %>>Every 1 Hour</option>
+            <option value="2h" <%= autoInterval === '2h' ? 'selected' : '' %>>Every 2 Hours</option>
+            <option value="6h" <%= autoInterval === '6h' ? 'selected' : '' %>>Every 6 Hours (Recommended)</option>
+            <option value="12h" <%= autoInterval === '12h' ? 'selected' : '' %>>Every 12 Hours</option>
+            <option value="24h" <%= (autoInterval === '24h' || autoInterval === 'daily') ? 'selected' : '' %>>Every 24 Hours (Daily at Midnight)</option>
+          </select>
+          <small class="muted" style="display:block;margin-top:6px">The background scheduler will automatically purge stale records and refresh panel memory.</small>
+        </div>
+
+        <div class="mt-4">
+          <button type="button" class="btn btn-primary" onclick="saveAutoCacheConfig()">
+            Save Auto Clear Schedule
+          </button>
+        </div>
+      </div>
+
+      <!-- Instant Manual Clear Card -->
+      <div class="card" style="padding:24px">
+        <div class="card-title mb-2" style="display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Instant Cache Purge
+        </div>
+        <p class="muted text-sm mb-4">
+          Perform a manual flush across all panel subsystems immediately.
+        </p>
+
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px;line-height:1.7">
+          <div style="font-weight:700;margin-bottom:4px;color:var(--text)">Subsystems Flushed on Clear:</div>
+          <div style="display:flex;align-items:center;gap:6px;color:var(--text-muted)">✔ Invalidate in-memory wallpaper and external query cache</div>
+          <div style="display:flex;align-items:center;gap:6px;color:var(--text-muted)">✔ Prune expired user sessions (&gt; 7 days inactive)</div>
+          <div style="display:flex;align-items:center;gap:6px;color:var(--text-muted)">✔ Remove stale password reset tokens (&gt; 24h old)</div>
+          <div style="display:flex;align-items:center;gap:6px;color:var(--text-muted)">✔ Flush GitHub release and update checker cache</div>
+          <div style="display:flex;align-items:center;gap:6px;color:var(--text-muted)">✔ Reload database settings cache directly from MongoDB</div>
+          <div style="display:flex;align-items:center;gap:6px;color:var(--text-muted)">✔ Trigger Node.js V8 heap garbage collection</div>
+        </div>
+
+        <button type="button" class="btn btn-danger" id="btnClearCacheNow" onclick="clearCacheNow()" style="padding:10px 18px;display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+          Clear All Caches Now
+        </button>
+      </div>
+  <!-- ============ ARIX THEME v2.1.3 SETTINGS ============ -->
+  <div class="tab-pane" id="tab-arix" style="display:none">
+    <div class="card mb-4" style="padding:24px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;right:0;width:340px;height:100%;background:radial-gradient(ellipse at top right, rgba(74, 53, 207, 0.18), transparent 70%);pointer-events:none"></div>
+
+      <div class="flex-between mb-4" style="flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--border);padding-bottom:18px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <img src="<%= all['arix.logo_url'] || '/arix/Arix.png' %>" alt="Arix Theme" style="height:42px;width:auto"/>
+          <div>
+            <div style="font-size:20px;font-weight:800;letter-spacing:-0.4px;display:flex;align-items:center;gap:10px">
+              Arix Theme Engine
+              <span class="pill pill-primary" style="font-size:11px;padding:3px 10px;font-weight:700">v2.1.3</span>
+            </div>
+            <div class="muted text-sm" style="margin-top:2px">Configure design tokens, color palette, geometric radiuses, and ambient feedback.</div>
+          </div>
+        </div>
+        <div class="flex" style="gap:8px">
+          <button type="button" class="btn btn-sm" onclick="resetArixDefaults()">Reset Arix Defaults</button>
+        </div>
+      </div>
+
+      <form method="post" action="/admin/settings/arix" id="arixSettingsForm">
+        <!-- 1. Color Palette & Primary Accent -->
+        <div class="mb-5">
+          <label style="font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="color:var(--primary)"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 10 10 0 0 0 9.54-13.88A10 10 0 0 0 12 2z"/></svg>
+            1. Primary Accent Color
+          </label>
+          <p class="muted text-sm mb-3">Defines the core branding hue for buttons, active navigation, glowing borders, and focus rings.</p>
+
+          <div class="grid grid-2" style="gap:20px;align-items:start">
+            <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:14px;padding:18px">
+              <div class="form-group mb-3">
+                <label>Custom Hex Color</label>
+                <div class="flex" style="gap:10px;align-items:center">
+                  <input type="color" id="arixColorPicker" value="<%= all['arix.primary'] || '#4A35CF' %>" style="width:46px;height:40px;padding:2px;border:none;border-radius:8px;cursor:pointer;background:transparent" oninput="onArixColorChange(this.value)"/>
+                  <input type="text" name="arix.primary" id="arixPrimaryInput" value="<%= all['arix.primary'] || '#4A35CF' %>" class="mono font-bold" style="max-width:160px;text-transform:uppercase" oninput="onArixColorChange(this.value)"/>
+                </div>
+              </div>
+
+              <label class="text-sm font-bold mb-2" style="display:block">Preset Color Palettes</label>
+              <div class="flex" style="flex-wrap:wrap;gap:8px">
+                <button type="button" class="btn btn-sm" onclick="setArixColor('#4A35CF')" style="background:#4A35CF;color:#fff;border:none">Arix Indigo (#4A35CF)</button>
+                <button type="button" class="btn btn-sm" onclick="setArixColor('#10b981')" style="background:#10b981;color:#fff;border:none">Emerald (#10b981)</button>
+                <button type="button" class="btn btn-sm" onclick="setArixColor('#06b6d4')" style="background:#06b6d4;color:#fff;border:none">Cyan (#06b6d4)</button>
+                <button type="button" class="btn btn-sm" onclick="setArixColor('#0284c7')" style="background:#0284c7;color:#fff;border:none">Ocean (#0284c7)</button>
+                <button type="button" class="btn btn-sm" onclick="setArixColor('#f59e0b')" style="background:#f59e0b;color:#1e1002;border:none;font-weight:700">Amber (#f59e0b)</button>
+                <button type="button" class="btn btn-sm" onclick="setArixColor('#e11d48')" style="background:#e11d48;color:#fff;border:none">Crimson (#e11d48)</button>
+                <button type="button" class="btn btn-sm" onclick="setArixColor('#8b5cf6')" style="background:#8b5cf6;color:#fff;border:none">Violet (#8b5cf6)</button>
+                <button type="button" class="btn btn-sm" onclick="setArixColor('#ec4899')" style="background:#ec4899;color:#fff;border:none">Rose (#ec4899)</button>
+              </div>
+            </div>
+
+            <!-- Live Button & Pill Preview -->
+            <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:14px;padding:18px">
+              <div class="muted text-sm font-bold mb-3" style="text-transform:uppercase;letter-spacing:0.5px">Real-Time Component Preview</div>
+              <div class="flex" style="gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+                <button type="button" class="btn btn-primary" id="previewPrimaryBtn">Primary Action</button>
+                <span class="pill pill-primary" id="previewPrimaryPill">Active Badge</span>
+                <span class="pill pill-green">Online</span>
+              </div>
+              <div style="background:var(--gray-800);border:1px solid var(--border);border-radius:var(--radius-box);padding:12px;font-size:12.5px;color:var(--text)">
+                Card background styled with Arix Navy (#0B0D2A) and live geometry.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="hr" style="margin:24px 0"/>
+
+        <!-- 2. Radiuses and Geometry -->
+        <div class="mb-5">
+          <label style="font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="3" width="18" height="18" rx="4"/></svg>
+            2. Geometry &amp; Border Radius
+          </label>
+          <p class="muted text-sm mb-3">Controls the smoothness and curve of container cards, modals, and input fields.</p>
+
+          <div class="grid grid-2" style="gap:20px">
+            <div class="range-slider-wrap">
+              <div class="flex-between mb-2">
+                <label style="font-weight:600">Box Corner Radius (--radius-box)</label>
+                <span class="pill pill-blue mono font-bold" id="arixRadiusBoxBadge"><%= all['arix.radius_box'] || '10px' %></span>
+              </div>
+              <input type="range" min="0" max="24" step="2" id="arixRadiusBoxSlider" value="<%= parseInt(all['arix.radius_box'] || '10') %>" oninput="onArixRadiusChange('box', this.value)" style="width:100%"/>
+              <input type="hidden" name="arix.radius_box" id="arixRadiusBoxInput" value="<%= all['arix.radius_box'] || '10px' %>"/>
+              <div class="flex-between muted text-sm mt-1" style="font-size:11px">
+                <span>0px (Sharp)</span>
+                <span>10px (Arix Default)</span>
+                <span>24px (Pill)</span>
+              </div>
+            </div>
+
+            <div class="range-slider-wrap">
+              <div class="flex-between mb-2">
+                <label style="font-weight:600">Input Corner Radius (--radius-input)</label>
+                <span class="pill pill-blue mono font-bold" id="arixRadiusInputBadge"><%= all['arix.radius_input'] || '8px' %></span>
+              </div>
+              <input type="range" min="0" max="16" step="2" id="arixRadiusInputSlider" value="<%= parseInt(all['arix.radius_input'] || '8') %>" oninput="onArixRadiusChange('input', this.value)" style="width:100%"/>
+              <input type="hidden" name="arix.radius_input" id="arixRadiusInputInput" value="<%= all['arix.radius_input'] || '8px' %>"/>
+              <div class="flex-between muted text-sm mt-1" style="font-size:11px">
+                <span>0px (Sharp)</span>
+                <span>8px (Arix Default)</span>
+                <span>16px (Rounded)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="hr" style="margin:24px 0"/>
+
+        <!-- 3. Appearance Mode & Effects -->
+        <div class="mb-5">
+          <label style="font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            3. Appearance Mode &amp; Interactive Effects
+          </label>
+          <p class="muted text-sm mb-3">Adjust default light/dark theme preference and ambient feedback features.</p>
+
+          <div class="grid grid-3" style="gap:16px">
+            <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:14px;padding:18px">
+              <label style="font-weight:600;margin-bottom:6px;display:block">Default Color Scheme</label>
+              <select name="arix.mode" id="arixModeSelect" onchange="onArixModeChange(this.value)">
+                <option value="dark" <%= (all['arix.mode'] || 'dark') === 'dark' ? 'selected' : '' %>>Dark Mode (Deep Navy - Recommended)</option>
+                <option value="light" <%= all['arix.mode'] === 'light' ? 'selected' : '' %>>Light Mode (Clean Gray)</option>
+              </select>
+              <div class="form-hint mt-2">Users can still toggle with the Sun/Moon button on top navbar.</div>
+            </div>
+
+            <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:14px;padding:18px">
+              <label style="font-weight:600;margin-bottom:6px;display:block">Navigation Rainbow Glow</label>
+              <select name="arix.nav_glow">
+                <option value="1" <%= (all['arix.nav_glow'] !== '0') ? 'selected' : '' %>>Enabled (Arix Signature Animation)</option>
+                <option value="0" <%= (all['arix.nav_glow'] === '0') ? 'selected' : '' %>>Disabled (Static Accent)</option>
+              </select>
+              <div class="form-hint mt-2">Smooth rainbow pulse on Arix Theme and VIP navigation items.</div>
+            </div>
+
+            <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:14px;padding:18px">
+              <label style="font-weight:600;margin-bottom:6px;display:block">Audio FX Feedback</label>
+              <select name="arix.sound_effects">
+                <option value="1" <%= (all['arix.sound_effects'] !== '0') ? 'selected' : '' %>>Enabled (Subtle chime on actions)</option>
+                <option value="0" <%= (all['arix.sound_effects'] === '0') ? 'selected' : '' %>>Disabled (Muted)</option>
+              </select>
+              <div class="form-hint mt-2">Plays native Arix chimes on copy and server power transitions.</div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="hr" style="margin:24px 0"/>
+
+        <!-- 4. Theme Assets & Branding -->
+        <div class="mb-5">
+          <label style="font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></svg>
+            4. Theme Assets &amp; Brand Paths
+          </label>
+          <div class="grid grid-2" style="gap:20px">
+            <div class="form-group">
+              <label>Arix Brand Logo URL</label>
+              <input name="arix.logo_url" value="<%= all['arix.logo_url'] || '/arix/Arix.png' %>" placeholder="/arix/Arix.png"/>
+              <div class="form-hint">Displayed in top navbar and login screens.</div>
+            </div>
+            <div class="form-group">
+              <label>Login Screen Wallpaper Image</label>
+              <input name="arix.login_bg" value="<%= all['arix.login_bg'] || '/arix/background-login.png' %>" placeholder="/arix/background-login.png"/>
+              <div class="form-hint">Path to background image for /login, /register, and auth pages.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex" style="gap:12px;margin-top:28px">
+          <button type="submit" class="btn btn-primary" style="padding:10px 24px;font-weight:700">Save Arix Theme Settings</button>
+          <a href="/admin/settings" class="btn" style="padding:10px 20px">Cancel</a>
+        </div>
       </form>
     </div>
   </div>
@@ -1070,6 +1366,100 @@ async function clearMedia(type) {
   } catch (e) {
     VP.toast(e.message, 'error');
   }
+}
+
+async function clearCacheNow() {
+  const btn = document.getElementById('btnClearCacheNow');
+  if (btn) btn.disabled = true;
+  try {
+    VP.toast('Purging system caches...', 'info');
+    const res = await VP.api('/admin/cache/clear', { method: 'POST' });
+    VP.toast('All system caches cleared successfully!', 'success');
+    if (res.status) {
+      if (res.status.memory && document.getElementById('cacheHeapVal')) {
+        document.getElementById('cacheHeapVal').textContent = res.status.memory.heap_used + ' MB';
+      }
+      if (document.getElementById('cacheWpVal')) {
+        document.getElementById('cacheWpVal').textContent = res.status.wallpaper_cache_size || 0;
+      }
+      if (document.getElementById('cacheSessVal')) {
+        document.getElementById('cacheSessVal').textContent = res.status.active_sessions || 0;
+      }
+      if (document.getElementById('cacheClearsVal')) {
+        document.getElementById('cacheClearsVal').textContent = res.status.total_clears || 0;
+      }
+      if (document.getElementById('cacheLastTime')) {
+        document.getElementById('cacheLastTime').textContent = 'Last: ' + (res.status.last_cleared ? new Date(res.status.last_cleared).toLocaleTimeString() : 'Just now');
+      }
+    }
+  } catch (err) {
+    VP.toast(err.message || 'Failed to clear cache', 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function saveAutoCacheConfig() {
+  const enabled = document.getElementById('autoCacheEnabled').value === '1';
+  const interval = document.getElementById('autoCacheInterval').value;
+  try {
+    await VP.api('/admin/cache/auto-clear/config', {
+      method: 'POST',
+      body: { enabled, interval }
+    });
+    VP.toast(`Auto cache clear updated: ${enabled ? 'Enabled (' + interval + ')' : 'Disabled'}`, 'success');
+  } catch (err) {
+    VP.toast(err.message || 'Failed to update auto cache clear schedule', 'error');
+  }
+}
+
+// Arix Theme Live Preview & Controls
+function onArixColorChange(hex) {
+  if (!hex) return;
+  const picker = document.getElementById('arixColorPicker');
+  const input = document.getElementById('arixPrimaryInput');
+  const btn = document.getElementById('previewPrimaryBtn');
+  const pill = document.getElementById('previewPrimaryPill');
+  if (picker) picker.value = hex;
+  if (input) input.value = hex;
+  if (btn) btn.style.background = hex;
+  if (pill) pill.style.background = hex;
+  document.documentElement.style.setProperty('--primary', hex);
+  document.documentElement.style.setProperty('--accent', hex);
+}
+
+function setArixColor(hex) {
+  onArixColorChange(hex);
+}
+
+function onArixRadiusChange(type, val) {
+  const px = val + 'px';
+  if (type === 'box') {
+    document.getElementById('arixRadiusBoxBadge').textContent = px;
+    document.getElementById('arixRadiusBoxInput').value = px;
+    document.documentElement.style.setProperty('--radius-box', px);
+    document.documentElement.style.setProperty('--radius', px);
+  } else if (type === 'input') {
+    document.getElementById('arixRadiusInputBadge').textContent = px;
+    document.getElementById('arixRadiusInputInput').value = px;
+    document.documentElement.style.setProperty('--radius-input', px);
+  }
+}
+
+function onArixModeChange(mode) {
+  document.documentElement.setAttribute('data-theme', mode);
+  try { localStorage.setItem('arix_theme', mode); } catch (_) {}
+}
+
+function resetArixDefaults() {
+  setArixColor('#4A35CF');
+  document.getElementById('arixRadiusBoxSlider').value = 10;
+  onArixRadiusChange('box', 10);
+  document.getElementById('arixRadiusInputSlider').value = 8;
+  onArixRadiusChange('input', 8);
+  const modeSel = document.getElementById('arixModeSelect');
+  if (modeSel) { modeSel.value = 'dark'; onArixModeChange('dark'); }
+  VP.toast('Arix theme tokens reset to defaults', 'info');
 }
 
 // Initial Boot
